@@ -12,7 +12,36 @@ void do_build() {
 	Project p = load();
 
 	create_cmakelists(p);
+	configure_cmakelists(p);
+	build_project();
 }
+
+void do_just_run() {
+	Project p = load();
+
+	string path = buildPath(".", p.build_dir, p.name) ~ ".exe";
+	auto proc = spawnProcess([path]);
+	scope(exit) wait(proc);
+}
+
+void build_project() {
+	auto proc = spawnProcess(["cmake", "--build", "build"]);
+	scope(exit) wait(proc);
+}
+
+void configure_cmakelists(Project p) {
+	string[] vars = [];
+
+	CoalFilePrivate coalfile_private;
+	coalfile_private.load(p.get_coalfile_private_fname());
+	foreach (key, val; coalfile_private.lib_paths) {
+		vars ~= format("-D%s=%s", key, val);
+	}
+
+	auto proc = spawnProcess(["cmake", "-S", ".", "-B", p.build_dir, "-G", p.generator] ~ vars);
+	scope(exit) wait(proc);
+}
+
 
 void create_cmakelists(Project p) {
 	CMakeLists_Manifest	m = build_cmakelists_manifest(p);

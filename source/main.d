@@ -39,4 +39,8 @@ void main(string[] args)
 	else if (cmd == Command.build) {
 		do_build();
 	}
+	else if (cmd == Command.run) {
+		do_build();
+		do_just_run();
+	}
 }
