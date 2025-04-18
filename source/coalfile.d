@@ -41,7 +41,7 @@ Project load() {
 
 	// Load coalfile.
 	{
-		string fname = buildPath(".", "coalfile");
+		string fname = p.get_coalfile_fname();
 		string json_string = readText(fname);
 		JSONValue j = parseJSON(json_string);
 		p.from_json_coalfile(j);
@@ -49,7 +49,7 @@ Project load() {
 
 	// Load coalfile.private.
 	{
-		string fname = buildPath(".", p.build_dir, "coalfile.private");
+		string fname = p.get_coalfile_private_fname();
 		string json_string = readText(fname);
 		JSONValue j = parseJSON(json_string);
 		p.from_json_coalfile_private(j);
@@ -65,4 +65,18 @@ private void ensure_coalfile_exists() {
 	}
 	writeln("No coalfile found! Initialize a coalfile project with `coalfile init`\n");
 	exit(1);
+}
+
+
+struct CoalFilePrivate {
+	string[string] lib_paths;
+
+	void load(string fname) {
+		string json_string = readText(fname);
+		JSONValue j = parseJSON(json_string);
+
+		foreach (key, val; j["lib_paths"].object) {
+			lib_paths[key] = val.str;
+		}
+	}
 }

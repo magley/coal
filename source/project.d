@@ -2,6 +2,7 @@ import std.json;
 import std.algorithm;
 import std.array;
 import std.stdio;
+import std.path;
 
 class Project {
 	string name = "";
@@ -42,7 +43,7 @@ class Project {
 
 		string[string] lib_paths;
 		foreach (const Library lib; libs) {
-			lib_paths[lib.name] = lib.path;
+			lib_paths[lib.get_dir_var_name()] = lib.path;
 		}
 		j["lib_paths"] = lib_paths;
 
@@ -52,7 +53,7 @@ class Project {
 	void from_json_coalfile_private(JSONValue j) {
 		foreach (lib_name, lib_path; j["lib_paths"].object) {
 			for (int i = 0; i < libs.length; i++) {
-				if (libs[i].name == lib_name) {
+				if (libs[i].get_dir_var_name() == lib_name) {
 					libs[i].path = lib_path.str;
 					break;
 				}
@@ -60,6 +61,13 @@ class Project {
 		}
 	}
 
+	string get_coalfile_private_fname() const {
+		return buildPath(".", build_dir, "coalfile.private");
+	}
+
+	string get_coalfile_fname() const {
+		return buildPath(".", "coalfile");
+	}
 
 }
 
@@ -88,5 +96,13 @@ struct Library {
 		lib_dirs = j["lib_dirs"].array.map!(x => x.str).array;
 		dll_dirs = j["dll_dirs"].array.map!(x => x.str).array;
 		link_libs = j["link_libs"].array.map!(x => x.str).array;
+	}
+
+	string get_dir_var_name() const {
+		return name ~ "_LIBDIR";
+	}
+
+	string get_dir_var() const {
+		return "${" ~ get_dir_var_name() ~ "}";
 	}
 }

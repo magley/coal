@@ -3,6 +3,7 @@ import std.conv;
 import init;
 import add;
 import input;
+import build;
 import std.json;
 
 enum Command { init, build, run, add }
@@ -34,5 +35,8 @@ void main(string[] args)
 	}
 	else if (cmd == Command.add) {
 		do_add();
+	}
+	else if (cmd == Command.build) {
+		do_build();
 	}
 }
