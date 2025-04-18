@@ -1,0 +1,92 @@
+import std.json;
+import std.algorithm;
+import std.array;
+import std.stdio;
+
+class Project {
+	string name = "";
+	string[] source_dirs = [];
+	string build_dir = "";
+	string generator = "";
+	Library[] libs = [];
+
+	JSONValue to_json_coalfile() const {
+		JSONValue j;
+		j["name"] = name;
+		j["source_dirs"] = source_dirs;
+		j["build_dir"] = build_dir;
+		j["generator"] = generator;
+
+		JSONValue[] libs_json = [];
+		foreach (const Library lib; libs) {
+			libs_json ~= lib.to_json_coalfile();
+		}
+		j["libs"] = libs_json;
+		return j;
+	}
+
+	void from_json_coalfile(JSONValue j) {
+		name = j["name"].str;
+		source_dirs = j["source_dirs"].array.map!(x => x.str).array;
+		build_dir = j["build_dir"].str;
+		generator = j["generator"].str;
+		foreach (const lib_json; j["libs"].array) {
+			Library lib;
+			lib.from_json_coalfile(lib_json);
+			libs ~= lib;
+		}
+	}
+
+	JSONValue to_json_coalfile_private() const {
+		JSONValue j;
+
+		string[string] lib_paths;
+		foreach (const Library lib; libs) {
+			lib_paths[lib.name] = lib.path;
+		}
+		j["lib_paths"] = lib_paths;
+
+		return j;
+	}
+
+	void from_json_coalfile_private(JSONValue j) {
+		foreach (lib_name, lib_path; j["lib_paths"].object) {
+			for (int i = 0; i < libs.length; i++) {
+				if (libs[i].name == lib_name) {
+					libs[i].path = lib_path.str;
+					break;
+				}
+			}
+		}
+	}
+
+
+}
+
+struct Library {
+	string name = "";
+	string[] include_dirs = [];
+	string[] lib_dirs = [];
+	string[] dll_dirs = [];
+	string[] link_libs = [];
+
+	string path = "";
+
+	JSONValue to_json_coalfile() const {
+		JSONValue j;
+		j["name"] = name;
+		j["include_dirs"] = include_dirs;
+		j["lib_dirs"] = lib_dirs;
+		j["dll_dirs"] = dll_dirs;
+		j["link_libs"] = link_libs;
+		return j;
+	}
+
+	void from_json_coalfile(const JSONValue j) {
+		name = j["name"].str;
+		include_dirs = j["include_dirs"].array.map!(x => x.str).array;
+		lib_dirs = j["lib_dirs"].array.map!(x => x.str).array;
+		dll_dirs = j["dll_dirs"].array.map!(x => x.str).array;
+		link_libs = j["link_libs"].array.map!(x => x.str).array;
+	}
+}

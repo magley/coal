@@ -1,6 +1,9 @@
 .vscode/
 
 
+*.pdb
+.dub/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -176,8 +179,6 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-# Prerequisites
-*.d
 
 # Compiled Object files
 *.slo

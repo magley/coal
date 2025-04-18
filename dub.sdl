@@ -1,0 +1,5 @@
+name "coal"
+description "CMake automation tool"
+authors "magley"
+copyright "Copyright © 2025, magley"
+license "BSD-2-Clause"
