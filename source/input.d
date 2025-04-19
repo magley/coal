@@ -2,6 +2,7 @@ import std.stdio;
 import std.string;
 import std.path;
 import std.file;
+import std.regex;
 
 void do_prompt(string s)
 {
@@ -41,6 +42,24 @@ string input_non_empty(string prompt)
 	{
 		s = input(prompt);
 		s = s.strip();
+	}
+
+	return s;
+}
+
+string input_safe(string prompt)
+{
+	string s = "";
+
+	while (s == "")
+	{
+		s = input(prompt);
+		s = s.strip();
+		if (!match(s, regex(`^[a-zA-Z0-9_]+$`)))
+		{
+			writeln("Only [a-z][A-Z][0-9] and _ are allowed");
+			s = "";
+		}
 	}
 
 	return s;
