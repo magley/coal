@@ -1,0 +1,189 @@
+import coalfile;
+import project;
+import std.path;
+import std.string;
+import std.stdio;
+import std.file;
+import std.array;
+import std.conv;
+import std.process;
+
+void do_build()
+{
+	Project p = load();
+
+	create_cmakelists(p);
+	configure_cmakelists(p);
+	build_project();
+}
+
+void do_just_run()
+{
+	Project p = load();
+
+	string path = buildPath(".", p.build_dir, p.name) ~ ".exe";
+	auto proc = spawnProcess([path]);
+	scope (exit)
+		wait(proc);
+}
+
+void build_project()
+{
+	auto proc = spawnProcess(["cmake", "--build", "build"]);
+	scope (exit)
+		wait(proc);
+}
+
+void configure_cmakelists(Project p)
+{
+	string[] vars = [];
+
+	CoalFilePrivate coalfile_private;
+	coalfile_private.load(p.get_coalfile_private_fname());
+	foreach (key, val; coalfile_private.lib_paths)
+	{
+		vars ~= format("-D%s=%s", key, val);
+	}
+
+	auto proc = spawnProcess([
+		"cmake", "-S", ".", "-B", p.build_dir, "-G", p.generator
+	] ~ vars);
+	scope (exit)
+		wait(proc);
+}
+
+void create_cmakelists(Project p)
+{
+	CMakeLists_Manifest m = build_cmakelists_manifest(p);
+	string s = generate_cmakelists_text(m, p);
+
+	File file = File("CMakeLists.txt", "w");
+	file.write(s);
+	file.close();
+}
+
+struct CMakeLists_Manifest
+{
+	string[] source_files = [];
+	string[] include_dirs = [];
+	string[2][] set_path_vars = [];
+	string[] link_dirs = [];
+	string[] link_libs = [];
+	string[] copy_dlls = [];
+}
+
+CMakeLists_Manifest build_cmakelists_manifest(Project p)
+{
+	const string source_file_ext = ".cpp";
+
+	CMakeLists_Manifest result;
+
+	foreach (dir; p.source_dirs)
+	{
+		result.include_dirs ~= dir;
+
+		foreach (entry; dirEntries(dir, SpanMode.depth))
+		{
+			if (entry.isFile && entry.name.extension == source_file_ext)
+			{
+				result.source_files ~= entry.name;
+			}
+		}
+	}
+
+	foreach (lib; p.libs)
+	{
+		const string lib_var = lib.get_dir_var();
+		result.set_path_vars ~= [lib.get_dir_var_name(), lib_var];
+
+		foreach (include_dir; lib.include_dirs)
+		{
+			result.include_dirs ~= buildPath(lib_var, include_dir);
+		}
+
+		foreach (link_dir; lib.lib_dirs)
+		{
+			result.link_dirs ~= buildPath(lib_var, link_dir);
+		}
+
+		foreach (link_lib; lib.link_libs)
+		{
+			result.link_libs ~= link_lib;
+		}
+
+		foreach (dll_file; lib.dll_dirs)
+		{
+			result.copy_dlls ~= buildPath(lib_var, dll_file);
+		}
+	}
+
+	return result;
+}
+
+string generate_cmakelists_text(const ref CMakeLists_Manifest manifest, Project p)
+{
+	auto S = appender!string();
+
+	S.put("cmake_minimum_required(VERSION 3.15...4.0)\n");
+	S.put("\n");
+	S.put(format("project(%s VERSION 1.0 LANGUAGES CXX)\n", p.name));
+	S.put(format("set(CMAKE_CXX_STANDARD 17)\n"));
+	S.put(format("set(CMAKE_EXPORT_COMPILE_COMMANDS 1)\n"));
+	S.put("\n");
+
+	foreach (path_var; manifest.set_path_vars)
+	{
+		S.put(format("set(%s %s CACHE PATH \"Path to %s\")\n", path_var[0], path_var[1], path_var[0]));
+	}
+	S.put("\n");
+
+	S.put("include_directories(\n");
+	foreach (include_dir; manifest.include_dirs)
+	{
+		S.put(format("    %s\n", include_dir.replace("\\", "/")));
+	}
+	S.put(")\n\n");
+
+	S.put("link_directories(\n");
+	foreach (link_dir; manifest.link_dirs)
+	{
+		S.put(format("    %s\n", link_dir.replace("\\", "/")));
+	}
+	S.put(")\n\n");
+
+	S.put("set(SOURCES\n");
+	foreach (source_file; manifest.source_files)
+	{
+		S.put(format("    %s\n", source_file.replace("\\", "/")));
+	}
+	S.put(")\n\n");
+
+	S.put(format("add_executable(%s %s ${SOURCES})\n", p.name, manifest.source_files[0].replace("\\", "/")));
+	S.put("\n");
+
+	S.put(format("target_link_libraries(%s\n", p.name));
+	foreach (link_lib; manifest.link_libs)
+	{
+		S.put(format("    %s\n", link_lib));
+	}
+	S.put(")\n\n");
+
+	if (manifest.copy_dlls.length > 0)
+	{
+		S.put(format("if (WIN32)\n"));
+		S.put(format("    add_custom_command(TARGET %s POST_BUILD\n", p.name));
+		foreach (dll; manifest.copy_dlls)
+		{
+			S.put(format(
+					"        COMMAND ${CMAKE_COMMAND} -E copy_if_different %s $<TARGET_FILE_DIR:%s>\n",
+					dll.replace("\\", "/"),
+					p.name)
+			);
+		}
+		S.put(format("    )\n"));
+		S.put(format("endif()\n"));
+	}
+	S.put("\n");
+
+	return S.data;
+}
