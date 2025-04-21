@@ -14,7 +14,7 @@ void do_build()
 
 	create_cmakelists(p);
 	configure_cmakelists(p);
-	build_project();
+	build_project(p);
 }
 
 void do_just_run()
@@ -27,9 +27,9 @@ void do_just_run()
 		wait(proc);
 }
 
-void build_project()
+void build_project(Project p)
 {
-	auto proc = spawnProcess(["cmake", "--build", "build"]);
+	auto proc = spawnProcess(["cmake", "--build", p.build_dir]);
 	scope (exit)
 		wait(proc);
 }
