@@ -7,8 +7,9 @@ import std.file;
 import std.array;
 import std.conv;
 import std.process;
+import cli;
 
-void do_build()
+void do_build(ref Command_build cmd)
 {
 	Project p = load();
 
@@ -17,7 +18,7 @@ void do_build()
 	build_project(p);
 }
 
-void do_just_run()
+void do_run(ref Command_build cmd)
 {
 	Project p = load();
 

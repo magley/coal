@@ -7,7 +7,7 @@ import std.path;
 import std.stdio;
 import cli;
 
-void do_init(const ref Command_init cmd)
+void do_init(ref Command_init cmd)
 {
 	Project p = new Project();
 	p.name = cmd.project_name.value;

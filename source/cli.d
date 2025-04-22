@@ -4,6 +4,7 @@ import std.algorithm.searching;
 import core.stdc.stdlib;
 import std.format;
 import std.traits;
+import std.conv;
 
 /* -----------------------------------------------------------------------------
 Entry point functions.
@@ -44,6 +45,31 @@ private void on_feed(string command, string[] args)
             do_init(cmd);
             break;
         }
+    case "add":
+        {
+            import add;
+
+            Command_add cmd = Command_add(args);
+            do_add(cmd);
+            break;
+        }
+    case "build":
+        {
+            import build;
+
+            Command_build cmd = Command_build(args);
+            do_build(cmd);
+            break;
+        }
+    case "run":
+        {
+            import build;
+
+            Command_build cmd = Command_build(args);
+            do_build(cmd);
+            do_run(cmd);
+            break;
+        }
     }
 }
 
@@ -81,25 +107,75 @@ struct Command_init
 
     private void help()
     {
-        writeln("init -- Initialize a new coal project\n");
+        writeln("init :: Initialize a new coal project\n");
         writeln(project_name.to_help());
         writeln(source_dir.to_help());
         writeln(build_dir.to_help());
         writeln(generator.to_help());
-        exit(0);
     }
 }
 
 struct Command_add
 {
+    StrParam name = StrParam("name", "Name of the library", null);
+    StrParam path = StrParam("path", "Full path to the root directory of the library", null);
+    StrArrParam include = StrArrParam("include", "Include directories, relative to path", [
+        ]);
+    StrArrParam lib = StrArrParam("lib", "Library directories, relative to path", [
+        ]);
+    StrArrParam link = StrArrParam("link", "Link directives (without -L prefix)", [
+        ]);
+    StrArrParam dll = StrArrParam("dll", ".dll files relative to path, to copy when building for Windows", [
+        ]);
+
+    this(string[] args)
+    {
+        auto map = build_map(args);
+        map.has_flag("help") ? help() : {};
+
+        map.get_val(name).require();
+        map.get_val(path).require();
+        map.get_vals(include);
+        map.get_vals(lib);
+        map.get_vals(link);
+        map.get_vals(dll);
+    }
+
+    private void help()
+    {
+        writeln("add :: Add a local library to the project as a soft link");
+        writeln("The library files are not copied to this project (except for specified .DLLs)\n");
+        writeln(name.to_help());
+        writeln(path.to_help());
+        writeln(include.to_help());
+        writeln(lib.to_help());
+        writeln(link.to_help());
+        writeln(dll.to_help());
+    }
 }
 
 struct Command_build
 {
+    this(string[] args)
+    {
+    }
+
+    private void help()
+    {
+        writeln("build :: Configure and build project using CMake");
+    }
 }
 
 struct Command_run
 {
+    this(string[] args)
+    {
+    }
+
+    private void help()
+    {
+        writeln("run :: Build and run project");
+    }
 }
 
 /* -----------------------------------------------------------------------------
@@ -144,12 +220,12 @@ struct Param(T)
     /// Get a string explaining this parameter.
     string to_help() const
     {
-        const string default_value = value == null ? "[None] (required)" : value;
-        return format("--%s\n\tDescription: %s\n\tDefault:    %s\n", name, desc, default_value);
+        return format("--%s\n\tDescription: %s\n\tDefault:     %s\n", name, desc, to!(string)(value));
     }
 }
 
 alias StrParam = Param!(string);
+alias StrArrParam = Param!(string[]);
 
 /// Build associative array from parameter list.
 ///
@@ -234,6 +310,14 @@ private bool has_flag(ref string[][string] map, string key)
 private ref StrParam get_val(ref string[][string] map, ref StrParam param)
 {
     param.value = map.get_val(param.name, param.value);
+
+    // We return the reference itself to allow chaining.
+    return param;
+}
+
+private ref StrArrParam get_vals(ref string[][string] map, ref StrArrParam param)
+{
+    param.value = map.get_vals(param.name, param.value);
 
     // We return the reference itself to allow chaining.
     return param;
