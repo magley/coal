@@ -5,15 +5,15 @@ import core.stdc.stdlib;
 import std.file;
 import std.path;
 import std.stdio;
+import cli;
 
-void do_init()
+void do_init(const ref Command_init cmd)
 {
 	Project p = new Project();
-
-	p.name = input_safe("Project name");
-	p.source_dirs = [input_non_empty("Source code directory")];
-	p.build_dir = input_non_empty("Build directory");
-	p.generator = "MinGW Makefiles";
+	p.name = cmd.project_name.value;
+	p.source_dirs = [cmd.source_dir.value];
+	p.build_dir = cmd.build_dir.value;
+	p.generator = cmd.generator.value;
 	p.libs = [];
 
 	save(p);
