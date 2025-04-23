@@ -65,8 +65,14 @@ private void on_feed(string command, string[] args)
         {
             import build;
 
-            Command_build cmd = Command_build(args);
-            do_build(cmd);
+            Command_run cmd = Command_run(args);
+
+            if (!cmd.no_build.value)
+            {
+                Command_build cmd_build = Command_build(args);
+                do_build(cmd_build);
+            }
+
             do_run(cmd);
             break;
         }
@@ -112,6 +118,7 @@ struct Command_init
         writeln(source_dir.to_help());
         writeln(build_dir.to_help());
         writeln(generator.to_help());
+        exit(0);
     }
 }
 
@@ -151,6 +158,7 @@ struct Command_add
         writeln(lib.to_help());
         writeln(link.to_help());
         writeln(dll.to_help());
+        exit(0);
     }
 }
 
@@ -163,18 +171,27 @@ struct Command_build
     private void help()
     {
         writeln("build :: Configure and build project using CMake");
+        exit(0);
     }
 }
 
 struct Command_run
 {
+    FlagParam no_build = FlagParam("no-build", "Don't build project", false);
+
     this(string[] args)
     {
+        auto map = build_map(args);
+        map.has_flag("help") ? help() : {};
+
+        map.get_flag(no_build).require();
     }
 
     private void help()
     {
-        writeln("run :: Build and run project");
+        writeln("run :: Run the project");
+        writeln(no_build.to_help());
+        exit(0);
     }
 }
 
@@ -182,7 +199,6 @@ struct Command_run
 General purpose functions and types for CLI.
 
 Param is a generic parameter type that a command uses.
-
 ---------------------------------------------------------------------------- */
 
 struct Param(T)
@@ -226,6 +242,7 @@ struct Param(T)
 
 alias StrParam = Param!(string);
 alias StrArrParam = Param!(string[]);
+alias FlagParam = Param!(bool);
 
 /// Build associative array from parameter list.
 ///
@@ -318,6 +335,14 @@ private ref StrParam get_val(ref string[][string] map, ref StrParam param)
 private ref StrArrParam get_vals(ref string[][string] map, ref StrArrParam param)
 {
     param.value = map.get_vals(param.name, param.value);
+
+    // We return the reference itself to allow chaining.
+    return param;
+}
+
+private ref FlagParam get_flag(ref string[][string] map, ref FlagParam param)
+{
+    param.value = map.has_flag(param.name);
 
     // We return the reference itself to allow chaining.
     return param;
