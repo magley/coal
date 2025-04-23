@@ -178,6 +178,7 @@ struct Command_build
 struct Command_run
 {
     FlagParam no_build = FlagParam("no-build", "Don't build project", false);
+    string[] passthrough_params = [];
 
     this(string[] args)
     {
@@ -185,6 +186,7 @@ struct Command_run
         map.has_flag("help") ? help() : {};
 
         map.get_flag(no_build).require();
+        passthrough_params = map.get_delimited_params();
     }
 
     private void help()
@@ -244,23 +246,44 @@ alias StrParam = Param!(string);
 alias StrArrParam = Param!(string[]);
 alias FlagParam = Param!(bool);
 
+private const PARAM_DELIMITER_KEY = "$PASS";
+
 /// Build associative array from parameter list.
+/// - A parameter is identified with `--param_name`.
+/// - A parameter can have 0 or more values.
+/// - A parameter with 0 values is implied to be a flag.
+/// - To delimit parameters use `--`, all following params
+/// are stored in a special value `PARAM_DELIMITER_KEY`.
 ///
-/// In: `--param1 v1 v2 v3 --param2 --param3 v4`
-/// Out: `[param1: [v1, v2, v3], param2: [], param3: [v4]]`
+/// In: `--param1 v1 v2 v3 --param2 --param3 v4 -- a --b`
+/// Out: `[param1: [v1, v2, v3], param2: [], param3: [v4]], {PARAM_DELIMITER_KEY}: [a, --b]`
 ///
 /// Params:
 ///   args = Command line args **WITHOUT** the first two elements (program name and command).
-private string[][string] build_map(ref string[] args)
+private string[][string] build_map(string[] args)
 {
     string curr_key = "";
     string[][string] map = null;
 
-    foreach (const ref string s; args)
+    foreach (size_t i, const ref string s; args)
     {
         if (s.startsWith("--"))
         {
             curr_key = s[2 .. $];
+
+            // If you specify only -- then the rest of the args should
+            // be passed to the next process (if needed).
+            if (curr_key == "")
+            {
+                map[PARAM_DELIMITER_KEY] = args[i + 1 .. $];
+                break;
+            }
+
+            if (curr_key == PARAM_DELIMITER_KEY)
+            {
+                writefln("Error: keyword %s is reserved", PARAM_DELIMITER_KEY);
+                continue;
+            }
 
             if (curr_key in map)
             {
@@ -274,6 +297,20 @@ private string[][string] build_map(ref string[] args)
     }
 
     return map;
+}
+
+unittest
+{
+    auto map = build_map([
+        "--param_list", "v1", "v2", "v3",
+        "--param", "v",
+        "--flag",
+        "--", "a", "--b", "c", "--d"
+    ]);
+    assert(map.get_vals("param_list", []) == ["v1", "v2", "v3"]);
+    assert(map.get_val("param", null) == "v");
+    assert(map.has_flag("flag"));
+    assert(map.get_delimited_params() == ["a", "--b", "c", "--d"]);
 }
 
 noreturn abort(string error)
@@ -346,4 +383,13 @@ private ref FlagParam get_flag(ref string[][string] map, ref FlagParam param)
 
     // We return the reference itself to allow chaining.
     return param;
+}
+
+private string[] get_delimited_params(ref string[][string] map)
+{
+    if (PARAM_DELIMITER_KEY in map)
+    {
+        return map[PARAM_DELIMITER_KEY];
+    }
+    return [];
 }

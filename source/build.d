@@ -22,8 +22,10 @@ void do_run(ref Command_run cmd)
 {
 	Project p = load();
 
-	string path = buildPath(".", p.build_dir, p.name) ~ ".exe";
-	auto proc = spawnProcess([path]);
+	const string program_path = buildPath(".", p.build_dir, p.name) ~ ".exe";
+	const string[] params = cmd.passthrough_params;
+
+	auto proc = spawnProcess([program_path] ~ params);
 	scope (exit)
 		wait(proc);
 }
