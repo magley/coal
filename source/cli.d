@@ -34,7 +34,29 @@ private void on_feed(string command, string[] args)
     {
     default:
         {
-            writeln("Unknown command\nUse coal --help for a list of commands");
+            writeln("Unknown command\nEnter coal help for a list of commands");
+            break;
+        }
+    case "version":
+        {
+            import main;
+
+            writefln("coal :: version %s", VERSION);
+            break;
+        }
+    case "help":
+        {
+            writeln("coal :: CMake utility tool");
+            writeln("Commands:");
+            writeln("\tinit     - Initialize a new project");
+            writeln("\tbuild    - Build project");
+            writeln("\trun      - Run project");
+            writeln("\tadd      - Add local library to project");
+            writeln("\tFor more info on any of these commands, run `coal [command] --help`");
+            writeln("\t");
+            writeln("\thelp     - Open this help menu");
+            writeln("\tversion  - Show version");
+
             break;
         }
     case "init":
@@ -80,7 +102,7 @@ private void on_feed(string command, string[] args)
 }
 
 /* -----------------------------------------------------------------------------
-General purpose functions and types for CLI.
+Project-specific functions and types for CLI.
 
 The idea is that each command in the program has its own Command_ struct, which
 holds all the parameters. The constructors of these types parses the arguments

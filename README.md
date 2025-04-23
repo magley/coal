@@ -24,22 +24,45 @@ C++ is different. The agreed-upon way of building projects in C++ is through CMa
 
 `coal` isnt'a plug-n-play tool for existing CMake projects. This may change in the future.
 
-## Usage
+## Installing
 
-`coal` assumes CMake and a C++ compiler are installed. At the moment, `coal` is hardcoded to use the MinGW compiler.
+You may download pre-built binaries in the [releases](https://github.com/magley/coal/releases) page.
+
+Alternatively, you can build coal yourself. Coal is written in D and uses `dub` as a package manager and build tool:
 
 ```sh
-# Initialize a new project
-coal init
+git clone https://github.com/magley/coal.git
+cd coal
+dub build
+```
 
-# Build the project
+> [!WARNING]
+> Windows Defender may incorrectly flag the program as malware due to its unfamiliarity with the D Language runtime. 
+
+## Example
+
+`coal` assumes CMake and a C++ compiler are installed.
+
+For more info on the commands and their parameters, see `coal help`.
+
+- Initialize a project called `myproject`:
+```sh
+coal init --name myproject
+```
+
+- Add the SDL3 library located on your computer at `D:/local_lib/SDL3/`:
+```sh
+coal add --name SDL3 --path D:/local_lib/SDL3/ --include include/ --lib lib/ --link SDL3 --dll bin/SDL3.dll
+```
+
+- Build the project:
+```sh
 coal build
+```
 
-# Build and run the project
-coal run
-
-# Add a local library to the project
-coal add
+- Run the project without building, passing additional parameters to your program:
+```sh
+coal run --no-build -- --param123 123 --flag123 
 ```
 
 ## Features
