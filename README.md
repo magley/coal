@@ -1,4 +1,4 @@
-# coal - Automate the boring parts of CMake
+# coal
 
 ![](./docs/coal_logo.png)
 
@@ -18,11 +18,11 @@ C++ is different. The agreed-upon way of building projects in C++ is through CMa
 
 ## What `coal` isn't
 
-`coal` isn't a package manager. You must download any libraries yourself. 
+`coal` isn't a package manager. You must download the libraries yourself. 
 
-`coal` isn't a CMake alternative. It works in junction with CMake and you may opt out at any time.
+`coal` isn't a CMake alternative. It works on top of CMake.
 
-`coal` isnt'a plug-n-play tool for existing CMake projects. This may change in the future.
+`coal` cannot be retrofitted to existing CMake projects.
 
 ## Installing
 

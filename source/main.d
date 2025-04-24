@@ -1,6 +1,6 @@
 import cli;
 
-const VERSION = "0.1";
+const VERSION = "0.2";
 
 void main(string[] args)
 {
