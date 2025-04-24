@@ -7,8 +7,9 @@ import std.file;
 import std.array;
 import std.conv;
 import std.process;
+import cli;
 
-void do_build()
+void do_build(ref Command_build cmd)
 {
 	Project p = load();
 
@@ -17,19 +18,23 @@ void do_build()
 	build_project(p);
 }
 
-void do_just_run()
+void do_run(ref Command_run cmd)
 {
 	Project p = load();
 
-	string path = buildPath(".", p.build_dir, p.name) ~ ".exe";
-	auto proc = spawnProcess([path]);
+	const string program_path = buildPath(".", p.build_dir, p.name) ~ ".exe";
+	const string[] params = cmd.passthrough_params;
+
+	auto proc = spawnProcess([program_path] ~ params);
 	scope (exit)
 		wait(proc);
 }
 
 void build_project(Project p)
 {
-	auto proc = spawnProcess(["cmake", "--build", p.build_dir]);
+	auto proc = spawnProcess([
+			"cmake", "--build", buildPath(".", p.build_dir)
+		]);
 	scope (exit)
 		wait(proc);
 }
@@ -46,7 +51,8 @@ void configure_cmakelists(Project p)
 	}
 
 	auto proc = spawnProcess([
-		"cmake", "-S", ".", "-B", p.build_dir, "-G", p.generator
+		"cmake", "-S", ".", "-B", buildPath(".", p.build_dir), "-G",
+		p.generator
 	] ~ vars);
 	scope (exit)
 		wait(proc);
@@ -56,8 +62,9 @@ void create_cmakelists(Project p)
 {
 	CMakeLists_Manifest m = build_cmakelists_manifest(p);
 	string s = generate_cmakelists_text(m, p);
+	string path = buildPath(".", "CMakeLists.txt");
 
-	File file = File("CMakeLists.txt", "w");
+	File file = File(path, "w");
 	file.write(s);
 	file.close();
 }
@@ -82,7 +89,9 @@ CMakeLists_Manifest build_cmakelists_manifest(Project p)
 	{
 		result.include_dirs ~= dir;
 
-		foreach (entry; dirEntries(dir, SpanMode.depth))
+		string dir_rel = buildPath(".", dir);
+
+		foreach (entry; dirEntries(dir_rel, SpanMode.depth))
 		{
 			if (entry.isFile && entry.name.extension == source_file_ext)
 			{

@@ -1,18 +1,19 @@
 import project;
 import input;
 import coalfile;
+import cli;
 
-void do_add()
+void do_add(ref Command_add cmd)
 {
 	Project p = load();
 
 	Library lib = Library();
-	lib.name = input_non_empty("Library name");
-	lib.path = input_non_empty("Library full path");
-	lib.include_dirs = input_multiple_or_none("Include directories", "Relative include/ dir");
-	lib.lib_dirs = input_multiple_or_none("Library directories", "Relative lib/ dir");
-	lib.link_libs = input_multiple_or_none("Linker directives (without -L)", "Link directive");
-	lib.dll_dirs = input_multiple_or_none("DLL files", "Path to .dll file");
+	lib.name = cmd.name.value;
+	lib.path = cmd.path.value;
+	lib.include_dirs = cmd.include.value;
+	lib.lib_dirs = cmd.lib.value;
+	lib.link_libs = cmd.link.value;
+	lib.dll_dirs = cmd.dll.value;
 
 	p.libs ~= lib;
 	save(p);
