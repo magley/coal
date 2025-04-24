@@ -21,7 +21,7 @@ void feed(string[] args)
 {
     if (args.length < 2)
     {
-        writeln("Use coal --help for a list of commands");
+        writeln("Use coal help for a list of commands");
         return;
     }
 
