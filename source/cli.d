@@ -125,6 +125,7 @@ void on_feed_template(string command, string[] args)
                 "coal template :: A template is a folder with files that can be cloned when initializing projects");
             writeln("\nCommands:\n");
             writeln("\tnew     - Declare a new template");
+            writeln("\tspawn   - Create a new project based on the specified template");
             writeln("\tFor more info on any of these commands, run `coal [command] --help`");
             writeln("\t");
             writeln("\thelp    - Open this help menu");
@@ -137,6 +138,15 @@ void on_feed_template(string command, string[] args)
 
             Command_template_new cmd = Command_template_new(args);
             do_new_template(cmd);
+
+            break;
+        }
+    case "spawn":
+        {
+            import templates;
+
+            Command_template_spawn cmd = Command_template_spawn(args);
+            do_spawn_from_template(cmd);
 
             break;
         }
@@ -285,6 +295,41 @@ struct Command_template_new
         writeln(desc.to_help());
         exit(0);
     }
+}
+
+struct Command_template_spawn
+{
+    StrParam template_name = StrParam("template", "Name of the template", null);
+    StrParam project_name = StrParam("name", "Name of the project", null);
+    StrParam source_dir = StrParam("source", "Source code directory", "src");
+    StrParam build_dir = StrParam("build", "Build directory", "build");
+    StrParam generator = StrParam("generator", "CMake generator to use", "MinGW Makefiles");
+
+    this(string[] args)
+    {
+        auto map = build_map(args);
+        map.has_flag("help") ? help() : {};
+
+        map.get_val(template_name).require();
+        map.get_val(project_name).require();
+
+        // These are required only when the template doesn't have its own coalfile.
+        map.get_val(source_dir); //.require();
+        map.get_val(build_dir); //.require();
+        map.get_val(generator); //.require();
+    }
+
+    private void help()
+    {
+        writeln("spawn :: Create new project using the provided template as a base\n");
+
+        writeln(template_name.to_help());
+        writeln(project_name.to_help());
+        writeln(source_dir.to_help());
+        writeln(build_dir.to_help());
+        writeln(generator.to_help());
+        exit(0);
+    }
 
 }
 
@@ -298,7 +343,7 @@ struct Param(T)
 {
     string name;
     string desc;
-    T value;
+    private T value;
 
     this(string param_name, string description, T default_val)
     {
@@ -324,6 +369,28 @@ struct Param(T)
                 abort(format("Parameter --%s required (got empty list)", name));
             }
         }
+    }
+
+    T get()
+    {
+        return value;
+    }
+
+    const(T) get() const
+    {
+        return value;
+    }
+
+    T get_strict()
+    {
+        require();
+        return value;
+    }
+
+    const(T) get_strict() const
+    {
+        require();
+        return value;
     }
 
     /// Get a string explaining this parameter.

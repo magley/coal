@@ -13,6 +13,13 @@ class Project
 	string generator = "";
 	Library[] libs = [];
 
+	Project clone() const
+	{
+		Project p = new Project();
+		p.from_json_coalfile(to_json_coalfile());
+		return p;
+	}
+
 	JSONValue to_json_coalfile() const
 	{
 		JSONValue j;
@@ -73,14 +80,14 @@ class Project
 		}
 	}
 
-	string get_coalfile_private_fname() const
+	string get_coalfile_private_fname(string directory = ".") const
 	{
-		return buildPath(".", build_dir, "coalfile.private");
+		return buildPath(directory, build_dir, "coalfile.private");
 	}
 
-	string get_coalfile_fname() const
+	string get_coalfile_fname(string directory = ".") const
 	{
-		return buildPath(".", "coalfile");
+		return buildPath(directory, "coalfile");
 	}
 
 }

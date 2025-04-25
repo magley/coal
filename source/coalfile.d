@@ -8,11 +8,11 @@ import std.algorithm;
 import std.format;
 import input;
 
-void save(Project p)
+void save(Project p, string directory = ".")
 {
 	// Bulid coalfile
 	{
-		string fname = buildPath(".", "coalfile");
+		string fname = buildPath(directory, "coalfile");
 
 		JSONValue j = p.to_json_coalfile();
 		File file = File(fname, "w");
@@ -22,7 +22,7 @@ void save(Project p)
 
 	// Create build directory
 	{
-		string dir = buildPath(".", p.build_dir);
+		string dir = buildPath(directory, p.build_dir);
 		if (!exists(dir))
 		{
 			mkdir(dir);
@@ -31,7 +31,7 @@ void save(Project p)
 
 	// Build coalfile.private
 	{
-		string fname = buildPath(".", p.build_dir, "coalfile.private");
+		string fname = buildPath(directory, p.build_dir, "coalfile.private");
 
 		JSONValue j = p.to_json_coalfile_private();
 		File file = File(fname, "w");
@@ -40,14 +40,14 @@ void save(Project p)
 	}
 }
 
-Project load()
+Project load(string directory = ".")
 {
-	ensure_coalfile_exists();
+	ensure_coalfile_exists(directory);
 	Project p = new Project();
 
 	// Load coalfile.
 	{
-		string fname = p.get_coalfile_fname();
+		string fname = p.get_coalfile_fname(directory);
 		string json_string = readText(fname);
 		JSONValue j = parseJSON(json_string);
 		p.from_json_coalfile(j);
@@ -55,7 +55,7 @@ Project load()
 
 	// Load coalfile.private.
 	{
-		string fname = p.get_coalfile_private_fname();
+		string fname = p.get_coalfile_private_fname(directory);
 		CoalFilePrivate coalfile_private;
 
 		if (exists(fname))
@@ -96,15 +96,19 @@ Project load()
 	return p;
 }
 
-private void ensure_coalfile_exists()
+private void ensure_coalfile_exists(string directory = ".")
 {
-	string fname = buildPath(".", "coalfile");
-	if (exists(fname))
+	if (!coalfile_exists(directory))
 	{
-		return;
+		writeln("No coalfile found! Initialize a coalfile project with `coalfile init`\n");
+		exit(1);
 	}
-	writeln("No coalfile found! Initialize a coalfile project with `coalfile init`\n");
-	exit(1);
+}
+
+bool coalfile_exists(string directory = ".")
+{
+	string fname = buildPath(directory, "coalfile");
+	return exists(fname);
 }
 
 struct CoalFilePrivate
