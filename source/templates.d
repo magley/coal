@@ -17,6 +17,18 @@ void do_new_template(const ref Command_template_new cmd)
     t.path = cmd.path.get;
     t.description = cmd.desc.get;
 
+    if (!exists(t.path))
+    {
+        writefln("Path %s doesn't exist", t.path);
+        exit(1);
+    }
+    t.path = absolutePath(t.path).dirName().replace("\\", "/");
+    if (!isDir(t.path))
+    {
+        writefln("Path %s is not a directory", t.path);
+        exit(1);
+    }
+
     TemplatesFile templates = load_templates();
     if (templates.templates.any!(o => o.name == t.name))
     {
