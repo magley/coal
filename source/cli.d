@@ -47,15 +47,16 @@ private void on_feed(string command, string[] args)
     case "help":
         {
             writeln("coal :: CMake utility tool");
-            writeln("Commands:");
-            writeln("\tinit     - Initialize a new project");
-            writeln("\tbuild    - Build project");
-            writeln("\trun      - Run project");
-            writeln("\tadd      - Add local library to project");
+            writeln("\nCommands:\n");
+            writeln("\tinit         - Initialize a new project");
+            writeln("\tbuild        - Build project");
+            writeln("\trun          - Run project");
+            writeln("\tadd          - Add local library to project");
+            writeln("\ttemplate     - Manage project templates");
             writeln("\tFor more info on any of these commands, run `coal [command] --help`");
             writeln("\t");
-            writeln("\thelp     - Open this help menu");
-            writeln("\tversion  - Show version");
+            writeln("\thelp         - Open this help menu");
+            writeln("\tversion      - Show version");
 
             break;
         }
@@ -96,6 +97,68 @@ private void on_feed(string command, string[] args)
             }
 
             do_run(cmd);
+            break;
+        }
+    case "template":
+        {
+            string subcommand = (args.length == 0) ? "" : args[0];
+            string[] subargs = (args.length == 0) ? [] : args[1 .. $];
+            on_feed_template(subcommand, subargs);
+
+            break;
+        }
+    }
+}
+
+void on_feed_template(string command, string[] args)
+{
+    switch (command)
+    {
+    default:
+        {
+            writeln("Unknown template command\nEnter coal template help for a list of commands");
+            break;
+        }
+    case "help":
+        {
+            writeln(
+                "coal template :: A template is a folder with files that can be cloned when initializing projects");
+            writeln("\nCommands:\n");
+            writeln("\tnew     - Declare a new template");
+            writeln("\tspawn   - Create a new project based on the specified template");
+            writeln("\tlist    - Show all templates");
+
+            writeln("\tFor more info on any of these commands, run `coal [command] --help`");
+            writeln("\t");
+            writeln("\thelp    - Open this help menu");
+
+            break;
+        }
+    case "new":
+        {
+            import templates;
+
+            Command_template_new cmd = Command_template_new(args);
+            do_new_template(cmd);
+
+            break;
+        }
+    case "spawn":
+        {
+            import templates;
+
+            Command_template_spawn cmd = Command_template_spawn(args);
+            do_spawn_from_template(cmd);
+
+            break;
+        }
+    case "list":
+        {
+            import templates;
+
+            Command_template_list cmd = Command_template_list(args);
+            do_list_templates(cmd);
+
             break;
         }
     }
@@ -219,6 +282,89 @@ struct Command_run
     }
 }
 
+struct Command_template_new
+{
+    StrParam name = StrParam("name", "Template name", null);
+    StrParam path = StrParam("path", "Full path to template files (root folder)", null);
+    StrParam desc = StrParam("desc", "Template description", "");
+
+    this(string[] args)
+    {
+        auto map = build_map(args);
+        map.has_flag("help") ? help() : {};
+
+        map.get_val(name).require();
+        map.get_val(path).require();
+        map.get_val(desc).require();
+    }
+
+    private void help()
+    {
+        writeln("new :: Create a new project template (as a soft link)");
+        writeln(name.to_help());
+        writeln(path.to_help());
+        writeln(desc.to_help());
+        exit(0);
+    }
+}
+
+struct Command_template_spawn
+{
+    StrParam template_name = StrParam("template", "Name of the template", null);
+    StrParam project_name = StrParam("name", "Name of the project", null);
+    StrParam source_dir = StrParam("source", "Source code directory", "src");
+    StrParam build_dir = StrParam("build", "Build directory", "build");
+    StrParam generator = StrParam("generator", "CMake generator to use", "MinGW Makefiles");
+
+    this(string[] args)
+    {
+        auto map = build_map(args);
+        map.has_flag("help") ? help() : {};
+
+        map.get_val(template_name).require();
+        map.get_val(project_name).require();
+
+        // These are required only when the template doesn't have its own coalfile.
+        map.get_val(source_dir); //.require();
+        map.get_val(build_dir); //.require();
+        map.get_val(generator); //.require();
+    }
+
+    private void help()
+    {
+        writeln("spawn :: Create new project using the provided template as a base\n");
+
+        writeln(template_name.to_help());
+        writeln(project_name.to_help());
+        writeln(source_dir.to_help());
+        writeln(build_dir.to_help());
+        writeln(generator.to_help());
+        exit(0);
+    }
+}
+
+struct Command_template_list
+{
+    FlagParam verbose = FlagParam("verbose", "Verbose output", false);
+
+    this(string[] args)
+    {
+        auto map = build_map(args);
+        map.has_flag("help") ? help() : {};
+
+        map.get_flag(verbose).require();
+    }
+
+    private void help()
+    {
+        writeln("list :: Show all templates\n");
+
+        writeln(verbose.to_help());
+        exit(0);
+    }
+
+}
+
 /* -----------------------------------------------------------------------------
 General purpose functions and types for CLI.
 
@@ -229,7 +375,7 @@ struct Param(T)
 {
     string name;
     string desc;
-    T value;
+    private T value;
 
     this(string param_name, string description, T default_val)
     {
@@ -255,6 +401,28 @@ struct Param(T)
                 abort(format("Parameter --%s required (got empty list)", name));
             }
         }
+    }
+
+    T get()
+    {
+        return value;
+    }
+
+    const(T) get() const
+    {
+        return value;
+    }
+
+    T get_strict()
+    {
+        require();
+        return value;
+    }
+
+    const(T) get_strict() const
+    {
+        require();
+        return value;
     }
 
     /// Get a string explaining this parameter.

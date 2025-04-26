@@ -7,17 +7,34 @@ import std.path;
 import std.stdio;
 import cli;
 
-void do_init(ref Command_init cmd)
+Project do_init(const ref Command_init cmd)
+{
+	return do_init(cmd.project_name.get, cmd.source_dir.get, cmd.build_dir.get, cmd.generator.get);
+}
+
+Project do_init(const ref Command_template_spawn cmd)
+{
+	return do_init(
+		cmd.project_name.get_strict,
+		cmd.source_dir.get_strict,
+		cmd.build_dir.get_strict,
+		cmd.generator.get_strict
+	);
+}
+
+private Project do_init(string name, string source_dir, string build_dir, string generator)
 {
 	Project p = new Project();
-	p.name = cmd.project_name.value;
-	p.source_dirs = [cmd.source_dir.value];
-	p.build_dir = cmd.build_dir.value;
-	p.generator = cmd.generator.value;
+	p.name = name;
+	p.source_dirs = [source_dir];
+	p.build_dir = build_dir;
+	p.generator = generator;
 	p.libs = [];
 
 	save(p);
 	create_stub(p);
+
+	return p;
 }
 
 private void create_stub(Project p)

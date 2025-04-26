@@ -1,4 +1,4 @@
-# coal - Automate the boring parts of CMake
+# coal
 
 ![](./docs/coal_logo.png)
 
@@ -18,11 +18,11 @@ C++ is different. The agreed-upon way of building projects in C++ is through CMa
 
 ## What `coal` isn't
 
-`coal` isn't a package manager. You must download any libraries yourself. 
+`coal` isn't a package manager. You must download the libraries yourself. 
 
-`coal` isn't a CMake alternative. It works in junction with CMake and you may opt out at any time.
+`coal` isn't a CMake alternative. It works on top of CMake.
 
-`coal` isnt'a plug-n-play tool for existing CMake projects. This may change in the future.
+`coal` cannot be retrofitted to existing CMake projects.
 
 ## Installing
 
@@ -52,7 +52,13 @@ coal init --name myproject
 
 - Add the SDL3 library located on your computer at `D:/local_lib/SDL3/`:
 ```sh
-coal add --name SDL3 --path D:/local_lib/SDL3/ --include include/ --lib lib/ --link SDL3 --dll bin/SDL3.dll
+coal add 
+    --name SDL3 
+    --path D:/local_lib/SDL3/ 
+    --include include/ 
+    --lib lib/ 
+    --link SDL3 
+    --dll bin/SDL3.dll
 ```
 
 - Build the project:
@@ -64,6 +70,37 @@ coal build
 ```sh
 coal run --no-build -- --param123 123 --flag123 
 ```
+
+## Templates
+
+Instead of creating a new project from scratch, you can declare a template to use as a base.
+<br/>
+A template is a soft link to a folder with code. All templates are defined in `templates.json`. Templates do not have to be `coal` projects.
+
+- Initialize a new template:
+
+```sh
+coal template new 
+    --name "OpenGL template" 
+    --desc "Create a window and draw a triangle" 
+    --path "D:/foo/bar/my_opengl_project"
+```
+
+- Create a new project using the template:
+
+```sh
+coal template spawn 
+    --template "OpenGL template" 
+    --name "My new program"
+    --source source/
+    --build binaries/
+    --generator "MinGW Makefiles"
+```
+
+When you clone a template, all of its files are copied to the new project, except for:
+- `.git/`
+- `CMakeLists.txt`
+- The build folder (except for `coalfile.private`)
 
 ## Features
 
