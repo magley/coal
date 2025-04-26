@@ -10,6 +10,23 @@ import coalfile;
 import std.typecons;
 import std.conv;
 
+void do_list_templates(const ref Command_template_list cmd)
+{
+    TemplatesFile templates = load_templates();
+
+    if (cmd.verbose.get)
+    {
+        foreach (const ref t; templates.templates)
+        {
+            writefln("%s\n\t%s\n\t%s", t.name, t.description, t.path);
+        }
+    }
+    else
+    {
+        writeln(join(templates.templates.map!(t => t.name), ", "));
+    }
+}
+
 void do_new_template(const ref Command_template_new cmd)
 {
     Template t = new Template();

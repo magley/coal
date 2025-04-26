@@ -126,6 +126,8 @@ void on_feed_template(string command, string[] args)
             writeln("\nCommands:\n");
             writeln("\tnew     - Declare a new template");
             writeln("\tspawn   - Create a new project based on the specified template");
+            writeln("\tlist    - Show all templates");
+
             writeln("\tFor more info on any of these commands, run `coal [command] --help`");
             writeln("\t");
             writeln("\thelp    - Open this help menu");
@@ -147,6 +149,15 @@ void on_feed_template(string command, string[] args)
 
             Command_template_spawn cmd = Command_template_spawn(args);
             do_spawn_from_template(cmd);
+
+            break;
+        }
+    case "list":
+        {
+            import templates;
+
+            Command_template_list cmd = Command_template_list(args);
+            do_list_templates(cmd);
 
             break;
         }
@@ -328,6 +339,27 @@ struct Command_template_spawn
         writeln(source_dir.to_help());
         writeln(build_dir.to_help());
         writeln(generator.to_help());
+        exit(0);
+    }
+}
+
+struct Command_template_list
+{
+    FlagParam verbose = FlagParam("verbose", "Verbose output", false);
+
+    this(string[] args)
+    {
+        auto map = build_map(args);
+        map.has_flag("help") ? help() : {};
+
+        map.get_flag(verbose).require();
+    }
+
+    private void help()
+    {
+        writeln("list :: Show all templates\n");
+
+        writeln(verbose.to_help());
         exit(0);
     }
 
