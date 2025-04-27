@@ -49,7 +49,11 @@ private void create_stub(Project p)
 			File file = File(fname_main, "w");
 			file.writeln("#include <iostream>\n");
 			file.writeln("int main(int argc, char** argv)");
-			file.writeln("{\n\tstd::cout << \"Hello World\\n\";\n}");
+			file.writeln("{\n");
+			file.writeln("\n\tstd::cout << \"Hello World\\n\";\n");
+			file.writeln("\n\treturn 0;\n");
+			file.writeln("}");
+
 			file.close();
 		}
 	}
