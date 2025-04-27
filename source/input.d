@@ -4,6 +4,14 @@ import std.path;
 import std.file;
 import std.regex;
 
+const CERR = "\033[0;31m";
+const CWARN = "\033[0;33m";
+const CINFO = "\033[0;90m";
+const CFOCUS = "\033[0;32m";
+const CCLEAR = "\033[0;37m";
+
+// ---------------------------------------------------------------
+
 void do_prompt(string s)
 {
 	writef("%s: ", s);
@@ -16,12 +24,12 @@ private string gets_dir_or_empty(string prompt)
 
 	if (!exists(s))
 	{
-		writeln(format("'%s' is not a valid path", s));
+		writefln(CFOCUS ~ "%s" ~ CWARN ~ " is not a valid path" ~ CCLEAR, s);
 		return "";
 	}
 	if (!isDir(s))
 	{
-		writeln(format("'%s' is not a directory", s));
+		writefln(CFOCUS ~ "%s" ~ CWARN ~ " is not a directory" ~ CCLEAR, s);
 		return "";
 	}
 

@@ -12,7 +12,8 @@ void do_add(ref Command_add cmd)
 
 	if (p.libs.any!(l => l.name == cmd.name.get))
 	{
-		writefln("A library by the name of %s is already defined", cmd.name.get);
+		writeln(
+			CERR ~ "Library " ~ CFOCUS ~ cmd.name.get ~ CERR ~ " already defined for project " ~ CFOCUS ~ p.name ~ CCLEAR);
 		exit(1);
 	}
 

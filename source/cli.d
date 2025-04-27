@@ -5,6 +5,7 @@ import core.stdc.stdlib;
 import std.format;
 import std.traits;
 import std.conv;
+import input;
 
 /* -----------------------------------------------------------------------------
 Entry point functions.
@@ -21,7 +22,7 @@ void feed(string[] args)
 {
     if (args.length < 2)
     {
-        writeln("Use coal help for a list of commands");
+        writeln(CINFO ~ "Use " ~ CFOCUS ~ "coal help" ~ CINFO ~ " for a list of commands" ~ CCLEAR);
         return;
     }
 
@@ -34,7 +35,7 @@ private void on_feed(string command, string[] args)
     {
     default:
         {
-            writeln("Unknown command\nEnter coal help for a list of commands");
+            writeln(CERR ~ "Unknown command\n" ~ CINFO ~ "Enter " ~ CFOCUS ~ "coal help" ~ CINFO ~ " for a list of commands" ~ CCLEAR);
             break;
         }
     case "version":
@@ -48,15 +49,14 @@ private void on_feed(string command, string[] args)
         {
             writeln("coal :: CMake utility tool");
             writeln("\nCommands:\n");
-            writeln("\tinit         - Initialize a new project");
-            writeln("\tbuild        - Build project");
-            writeln("\trun          - Run project");
-            writeln("\tadd          - Add local library to project");
-            writeln("\ttemplate     - Manage project templates");
-            writeln("\tFor more info on any of these commands, run `coal [command] --help`");
-            writeln("\t");
-            writeln("\thelp         - Open this help menu");
-            writeln("\tversion      - Show version");
+            writeln(CFOCUS ~ "\tinit         " ~ CINFO ~ "- Initialize a new project");
+            writeln(CFOCUS ~ "\tbuild        " ~ CINFO ~ "- Build project");
+            writeln(CFOCUS ~ "\trun          " ~ CINFO ~ "- Run project");
+            writeln(CFOCUS ~ "\tadd          " ~ CINFO ~ "- Add local library to project");
+            writeln(CFOCUS ~ "\ttemplate     " ~ CINFO ~ "- Manage project templates");
+            writeln(CFOCUS ~ "\thelp         " ~ CINFO ~ "- Open this help menu");
+            writeln(CFOCUS ~ "\tversion      " ~ CINFO ~ "- Show version");
+            write(CCLEAR);
 
             break;
         }
@@ -116,7 +116,7 @@ void on_feed_template(string command, string[] args)
     {
     default:
         {
-            writeln("Unknown template command\nEnter coal template help for a list of commands");
+            writeln(CERR ~ "Unknown template command\n" ~ CINFO ~ "Enter " ~ CFOCUS ~ "coal template help" ~ CINFO ~ " for a list of commands" ~ CCLEAR);
             break;
         }
     case "help":
@@ -124,13 +124,12 @@ void on_feed_template(string command, string[] args)
             writeln(
                 "coal template :: A template is a folder with files that can be cloned when initializing projects");
             writeln("\nCommands:\n");
-            writeln("\tnew     - Declare a new template");
-            writeln("\tspawn   - Create a new project based on the specified template");
-            writeln("\tlist    - Show all templates");
-
-            writeln("\tFor more info on any of these commands, run `coal [command] --help`");
-            writeln("\t");
-            writeln("\thelp    - Open this help menu");
+            writeln(CFOCUS ~ "\tnew         " ~ CINFO ~ "- Declare a new template");
+            writeln(
+                CFOCUS ~ "\tspawn       " ~ CINFO ~ "- Create a new project based on the specified template");
+            writeln(CFOCUS ~ "\tlist        " ~ CINFO ~ "- Show all templates");
+            writeln(CFOCUS ~ "\thelp        " ~ CINFO ~ "- Open this help menu");
+            writeln(CCLEAR);
 
             break;
         }
@@ -428,7 +427,10 @@ struct Param(T)
     /// Get a string explaining this parameter.
     string to_help() const
     {
-        return format("--%s\n\tDescription: %s\n\tDefault:     %s\n", name, desc, to!(string)(value));
+        return format(CFOCUS ~ "--%s" ~
+                CCLEAR ~ "\n\tDescription: " ~ CINFO ~ "%s\n\t" ~
+                CCLEAR ~ "Default:     " ~ CINFO ~ "%s\n" ~
+                CCLEAR, name, desc, to!(string)(value));
     }
 }
 
@@ -471,13 +473,13 @@ private string[][string] build_map(string[] args)
 
             if (curr_key == PARAM_DELIMITER_KEY)
             {
-                writefln("Error: keyword %s is reserved", PARAM_DELIMITER_KEY);
+                writeln(CERR ~ "Keyword " ~ CFOCUS ~ PARAM_DELIMITER_KEY ~ CERR ~ " is reserved" ~ CCLEAR);
                 continue;
             }
 
             if (curr_key in map)
             {
-                writeln("Error: parameter " ~ curr_key ~ " already defined!");
+                writeln(CERR ~ "Parameter " ~ CFOCUS ~ curr_key ~ CERR ~ " already defined" ~ CCLEAR,);
                 return null;
             }
             map[curr_key] = [];
@@ -511,7 +513,7 @@ noreturn abort(string error)
 
 noreturn abort_param_required(string param)
 {
-    abort("Parameter --" ~ param ~ " required");
+    abort(format(CERR ~ "Parameter " ~ CFOCUS ~ "--%s" ~ CERR ~ "required" ~ CCLEAR, param));
 }
 
 private string get_val(ref string[][string] map, string key, string def)
@@ -525,7 +527,8 @@ private string get_val(ref string[][string] map, string key, string def)
         }
         if (values.length > 1)
         {
-            abort(format("Parameter --%s expecting 1 value, got %d", key, values.length));
+            abort(format(CERR ~ "Parameter " ~ CFOCUS ~ "--%s" ~ CERR ~ "expecting 1 value, got %d" ~ CCLEAR, key, values
+                    .length));
         }
 
         return values[0];
