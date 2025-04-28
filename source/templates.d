@@ -141,6 +141,26 @@ void do_spawn_from_template(const ref Command_template_spawn cmd)
                 ~ CINFO ~ ")"
                 ~ CCLEAR);
 
+        // Prevent infinite loops.
+        {
+            string template_path = t.path;
+            string project_path = ".";
+
+            if (is_subdirectory(template_path, project_path))
+            {
+                writefln(
+                    ""
+                        ~ CERR ~ "Cannot clone template here: project "
+                        ~ CFOCUS ~ p.name
+                        ~ CERR ~ " is in child directory of template "
+                        ~ CFOCUS ~ t.name
+                        ~ CINFO ~ " (cloning would cause an infinite loop)"
+                        ~ CCLEAR);
+                exit(1);
+                return;
+            }
+        }
+
         // We ignore `coalfile` here because we have already created one from a
         // Project. If we were to copy the coalfile here, it would override any
         // changes (for example: project name).

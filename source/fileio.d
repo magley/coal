@@ -4,6 +4,7 @@ import std.stdio;
 import std.algorithm;
 import std.uni;
 import std.container.rbtree;
+import std.array;
 
 /// Copy contents of folder `source` into folder `destination`. 
 void copy_folder_contents(
@@ -11,18 +12,18 @@ void copy_folder_contents(
     string destination,
     string[] _ignore_folders = [],
     string[] _ignore_files = [],
-    bool ignore_name_case_sensitive = false)
+    bool case_insensitive = false)
 {
     auto ignore_folders = redBlackTree!string();
     foreach (string name; _ignore_folders)
     {
-        string n = ignore_name_case_sensitive ? name : name.toLower();
+        string n = case_insensitive ? name : name.toLower();
         ignore_folders.insert(n);
     }
     auto ignore_files = redBlackTree!string();
     foreach (string name; _ignore_files)
     {
-        string n = ignore_name_case_sensitive ? name : name.toLower();
+        string n = case_insensitive ? name : name.toLower();
         ignore_files.insert(n);
     }
 
@@ -54,4 +55,23 @@ void copy_folder_contents(
             copy(entry.name, destPath);
         }
     }
+}
+
+bool is_subdirectory(string haystack, string needle, bool case_insensitive = false)
+{
+    string absA = haystack.buildPath.absolutePath.replace("\\", "/");
+    string absB = needle.buildPath.absolutePath.replace("\\", "/");
+
+    while (absA.endsWith(".") || absA.endsWith("/"))
+    {
+        absA = absA[0 .. $ - 1];
+    }
+
+    if (case_insensitive)
+    {
+        absA = absA.toLower();
+        absB = absB.toLower();
+    }
+
+    return absB.startsWith(absA);
 }

@@ -29,15 +29,13 @@ void do_run(ref Command_run cmd)
 {
 	Project p = load();
 
-	writeln(CTRACE ~ "    [1/1 coal run] " ~ CINFO ~ "Running executable " ~ CFOCUS ~ p.name ~ CINFO);
+	writeln(CTRACE ~ "    [1/1 coal run] " ~ CINFO ~ "Running executable " ~ CFOCUS ~ p.name ~ CCLEAR);
 
 	const string program_path = buildPath(".", p.build_dir, p.name) ~ ".exe";
 	const string[] params = cmd.passthrough_params;
 
 	auto proc = spawnProcess([program_path] ~ params);
 	wait(proc);
-
-	write(CCLEAR);
 }
 
 void build_project(Project p)
