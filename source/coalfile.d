@@ -102,7 +102,7 @@ private void ensure_coalfile_exists(string directory = ".")
 	if (!coalfile_exists(directory))
 	{
 		writeln(
-			CERR ~ "No coalfile found!\n" ~ CCLEAR ~ "Initialize a coalfile project with " ~ CFOCUS ~ "coalfile init" ~ CCLEAR);
+			CERR ~ "No coalfile found!\n" ~ CCLEAR ~ "Initialize a coalfile project with " ~ CFOCUS ~ "coal init" ~ CCLEAR);
 		exit(1);
 	}
 }

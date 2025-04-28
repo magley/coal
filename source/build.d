@@ -8,35 +8,42 @@ import std.array;
 import std.conv;
 import std.process;
 import cli;
+import input;
 
 void do_build(ref Command_build cmd)
 {
 	Project p = load();
 
+	writeln(
+		CTRACE ~ "    [1/3 coal build] " ~ CINFO ~ "Generating CMakeLists.txt for " ~ CFOCUS ~ p.name ~ CINFO);
 	create_cmakelists(p);
+	writeln(
+		CTRACE ~ "    [2/3 coal build] " ~ CINFO ~ "Configuring CMake project " ~ CFOCUS ~ p.name ~ CINFO);
 	configure_cmakelists(p);
+	writeln(CTRACE ~ "    [3/3 coal build] " ~ CINFO ~ "Building " ~ CFOCUS ~ p.name ~ CINFO);
 	build_project(p);
+	write(CCLEAR);
 }
 
 void do_run(ref Command_run cmd)
 {
 	Project p = load();
 
+	writeln(CTRACE ~ "    [1/1 coal run] " ~ CINFO ~ "Running executable " ~ CFOCUS ~ p.name ~ CINFO);
+
 	const string program_path = buildPath(".", p.build_dir, p.name) ~ ".exe";
 	const string[] params = cmd.passthrough_params;
 
 	auto proc = spawnProcess([program_path] ~ params);
-	scope (exit)
-		wait(proc);
+	wait(proc);
+
+	write(CCLEAR);
 }
 
 void build_project(Project p)
 {
-	auto proc = spawnProcess([
-			"cmake", "--build", buildPath(".", p.build_dir)
-		]);
-	scope (exit)
-		wait(proc);
+	auto proc = spawnProcess(["cmake", "--build", buildPath(".", p.build_dir)]);
+	wait(proc);
 }
 
 void configure_cmakelists(Project p)
@@ -51,11 +58,9 @@ void configure_cmakelists(Project p)
 	}
 
 	auto proc = spawnProcess([
-		"cmake", "-S", ".", "-B", buildPath(".", p.build_dir), "-G",
-		p.generator
+		"cmake", "-S", ".", "-B", buildPath(".", p.build_dir), "-G", p.generator
 	] ~ vars);
-	scope (exit)
-		wait(proc);
+	wait(proc);
 }
 
 void create_cmakelists(Project p)

@@ -61,6 +61,7 @@ void do_new_template(const ref Command_template_new cmd)
 void do_spawn_from_template(const ref Command_template_spawn cmd)
 {
     import project;
+    import input;
 
     const TemplatesFile templates = load_templates();
 
@@ -73,6 +74,14 @@ void do_spawn_from_template(const ref Command_template_spawn cmd)
         exit(1);
     }
 
+    writeln(""
+            ~ CTRACE ~ "    [1/3 coal template] "
+            ~ CINFO ~ "Creating project "
+            ~ CFOCUS ~ cmd.project_name.get
+            ~ CINFO ~ " from template "
+            ~ CFOCUS ~ cmd.template_name.get
+            ~ CCLEAR);
+
     // [2] Create project file.
     //
     // We *could* copy all files and then construct a project, but if this
@@ -84,6 +93,13 @@ void do_spawn_from_template(const ref Command_template_spawn cmd)
     Project p;
     if (coalfile_exists(t.path))
     {
+        writeln(
+            ""
+                ~ CTRACE ~ "    [2/3 coal template] "
+                ~ CINFO ~ "Cloning coalfile from template "
+                ~ CFOCUS ~ cmd.template_name.get
+                ~ CCLEAR);
+
         Project template_project = load(t.path);
         p = template_project.clone();
         p.name = cmd.project_name.get();
@@ -93,10 +109,14 @@ void do_spawn_from_template(const ref Command_template_spawn cmd)
     {
         import init;
 
-        writefln(CWARN ~ "No coalfile at %s", t.path);
-        writeln(CINFO ~ "A coalfile will be created for the new project");
-        writeln("Make sure to specify all the parameters like when initializing a blank project");
-        writeln(CCLEAR);
+        writeln(""
+                ~ CTRACE ~ "    [2/3 coal template] "
+                ~ CINFO ~ "Template "
+                ~ CFOCUS ~ cmd.template_name.get
+                ~ CINFO ~ " has no coalfile (expected "
+                ~ CCLEAR ~ buildPath(t.path, "coalfile")
+                ~ CINFO ~ "). Generating a new coal project"
+                ~ CCLEAR);
 
         p = do_init(cmd);
     }
@@ -106,6 +126,20 @@ void do_spawn_from_template(const ref Command_template_spawn cmd)
 
     {
         import fileio;
+
+        writeln(""
+                ~ CTRACE ~ "    [3/3 coal template] "
+                ~ CINFO ~ "Copying files from template "
+                ~ CFOCUS ~ cmd.template_name.get
+                ~ CINFO ~ " into project "
+                ~ CFOCUS ~ p.name
+                ~ CINFO ~ "\n        ("
+                ~ CCLEAR ~ absolutePath(
+                    t.path)
+                ~ CINFO ~ " -> "
+                ~ CCLEAR ~ absolutePath(".")
+                ~ CINFO ~ ")"
+                ~ CCLEAR);
 
         // We ignore `coalfile` here because we have already created one from a
         // Project. If we were to copy the coalfile here, it would override any

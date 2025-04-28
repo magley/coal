@@ -9,6 +9,7 @@ const CWARN = "\033[0;33m";
 const CINFO = "\033[0;90m";
 const CFOCUS = "\033[0;32m";
 const CCLEAR = "\033[0;37m";
+const CTRACE = "\033[0;34m";
 
 private string gets_dir_or_empty(string prompt)
 {
