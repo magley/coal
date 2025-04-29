@@ -9,6 +9,7 @@ import core.stdc.stdlib;
 import coalfile;
 import std.typecons;
 import std.conv;
+import input;
 
 void do_list_templates(const ref Command_template_list cmd)
 {
@@ -36,20 +37,20 @@ void do_new_template(const ref Command_template_new cmd)
 
     if (!exists(t.path))
     {
-        writefln("Path %s doesn't exist", t.path);
+        writefln(CERR ~ "Path " ~ CFOCUS ~ "%s" ~ CERR ~ " doesn't exist" ~ CCLEAR, t.path);
         exit(1);
     }
     t.path = absolutePath(t.path).dirName().replace("\\", "/");
     if (!isDir(t.path))
     {
-        writefln("Path %s is not a directory", t.path);
+        writefln(CERR ~ "Path " ~ CFOCUS ~ "%s" ~ CERR ~ " is not a directory" ~ CCLEAR, t.path);
         exit(1);
     }
 
     TemplatesFile templates = load_templates();
     if (templates.templates.any!(o => o.name == t.name))
     {
-        writefln("A template called %s already exists", t.name);
+        writefln(CERR ~ "Template " ~ CFOCUS ~ "%s" ~ CERR ~ " already exists" ~ CCLEAR, t.name);
         exit(1);
     }
 
@@ -60,6 +61,7 @@ void do_new_template(const ref Command_template_new cmd)
 void do_spawn_from_template(const ref Command_template_spawn cmd)
 {
     import project;
+    import input;
 
     const TemplatesFile templates = load_templates();
 
@@ -68,9 +70,17 @@ void do_spawn_from_template(const ref Command_template_spawn cmd)
     const Template t = templates.get_template(cmd.template_name.get);
     if (t is null)
     {
-        writefln("Unknown template %s", cmd.template_name.get);
+        writefln(CERR ~ "Unknown template " ~ CFOCUS ~ "%s" ~ CCLEAR, cmd.template_name.get);
         exit(1);
     }
+
+    writeln(""
+            ~ CTRACE ~ "    [1/3 coal template] "
+            ~ CINFO ~ "Creating project "
+            ~ CFOCUS ~ cmd.project_name.get
+            ~ CINFO ~ " from template "
+            ~ CFOCUS ~ cmd.template_name.get
+            ~ CCLEAR);
 
     // [2] Create project file.
     //
@@ -83,6 +93,13 @@ void do_spawn_from_template(const ref Command_template_spawn cmd)
     Project p;
     if (coalfile_exists(t.path))
     {
+        writeln(
+            ""
+                ~ CTRACE ~ "    [2/3 coal template] "
+                ~ CINFO ~ "Cloning coalfile from template "
+                ~ CFOCUS ~ cmd.template_name.get
+                ~ CCLEAR);
+
         Project template_project = load(t.path);
         p = template_project.clone();
         p.name = cmd.project_name.get();
@@ -92,10 +109,14 @@ void do_spawn_from_template(const ref Command_template_spawn cmd)
     {
         import init;
 
-        writefln("No coalfile at %s", t.path);
-        writeln("A coalfile will be created for the new project");
-        writeln("Make sure to specify all the parameters like when initializing a blank project");
-        writeln();
+        writeln(""
+                ~ CTRACE ~ "    [2/3 coal template] "
+                ~ CINFO ~ "Template "
+                ~ CFOCUS ~ cmd.template_name.get
+                ~ CINFO ~ " has no coalfile (expected "
+                ~ CCLEAR ~ buildPath(t.path, "coalfile")
+                ~ CINFO ~ "). Generating a new coal project"
+                ~ CCLEAR);
 
         p = do_init(cmd);
     }
@@ -105,6 +126,40 @@ void do_spawn_from_template(const ref Command_template_spawn cmd)
 
     {
         import fileio;
+
+        writeln(""
+                ~ CTRACE ~ "    [3/3 coal template] "
+                ~ CINFO ~ "Copying files from template "
+                ~ CFOCUS ~ cmd.template_name.get
+                ~ CINFO ~ " into project "
+                ~ CFOCUS ~ p.name
+                ~ CINFO ~ "\n        ("
+                ~ CCLEAR ~ absolutePath(
+                    t.path)
+                ~ CINFO ~ " -> "
+                ~ CCLEAR ~ absolutePath(".")
+                ~ CINFO ~ ")"
+                ~ CCLEAR);
+
+        // Prevent infinite loops.
+        {
+            string template_path = t.path;
+            string project_path = ".";
+
+            if (is_subdirectory(template_path, project_path))
+            {
+                writefln(
+                    ""
+                        ~ CERR ~ "Cannot clone template here: project "
+                        ~ CFOCUS ~ p.name
+                        ~ CERR ~ " is in child directory of template "
+                        ~ CFOCUS ~ t.name
+                        ~ CINFO ~ " (cloning would cause an infinite loop)"
+                        ~ CCLEAR);
+                exit(1);
+                return;
+            }
+        }
 
         // We ignore `coalfile` here because we have already created one from a
         // Project. If we were to copy the coalfile here, it would override any
@@ -203,8 +258,8 @@ private TemplatesFile load_templates()
     }
     else
     {
-        writefln("Templates file '%s' at coal's dir not found", path);
-        writeln("Generating empty template file...");
+        writefln(CWARN ~ "Templates file " ~ CFOCUS ~ "%s" ~ CWARN ~ " not found", path);
+        writeln("Generating empty template file..." ~ CCLEAR);
         save_templates(t);
     }
     return t;

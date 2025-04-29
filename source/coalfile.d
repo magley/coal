@@ -85,7 +85,8 @@ Project load(string directory = ".")
 
 			if (path_error != null)
 			{
-				writeln(format("[%s] %s: '%s'", lib.name, path_error, lib.path));
+				writefln(CFOCUS ~ "[%s] " ~ CINFO ~ "%s: " ~ CERR ~ "'%s'" ~ CCLEAR, lib.name, path_error, lib
+						.path);
 				string new_path = input_dir_non_empty(format("Enter path for library %s", lib.name));
 				lib.path = new_path;
 			}
@@ -100,7 +101,8 @@ private void ensure_coalfile_exists(string directory = ".")
 {
 	if (!coalfile_exists(directory))
 	{
-		writeln("No coalfile found! Initialize a coalfile project with `coalfile init`\n");
+		writeln(
+			CERR ~ "No coalfile found!\n" ~ CCLEAR ~ "Initialize a coalfile project with " ~ CFOCUS ~ "coal init" ~ CCLEAR);
 		exit(1);
 	}
 }

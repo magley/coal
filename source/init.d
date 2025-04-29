@@ -47,9 +47,13 @@ private void create_stub(Project p)
 
 			string fname_main = buildPath(dir, "main.cpp");
 			File file = File(fname_main, "w");
-			file.writeln("#include <iostream>\n");
+			file.writeln("#include <iostream>");
 			file.writeln("int main(int argc, char** argv)");
-			file.writeln("{\n\tstd::cout << \"Hello World\\n\";\n}");
+			file.writeln("{");
+			file.writeln("\tstd::cout << \"Hello World\\n\";");
+			file.writeln("\treturn 0;");
+			file.writeln("}");
+
 			file.close();
 		}
 	}
