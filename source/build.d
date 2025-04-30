@@ -7,10 +7,10 @@ import std.file;
 import std.array;
 import std.conv;
 import std.process;
-import cli;
 import input;
+import clyd.command;
 
-void do_build(ref Command_build cmd)
+void do_build(Command cmd)
 {
 	Project p = load();
 
@@ -25,14 +25,24 @@ void do_build(ref Command_build cmd)
 	write(CCLEAR);
 }
 
-void do_run(ref Command_run cmd)
+void do_run(Command cmd)
+{
+	if (!cmd.args["no-build"].is_set_flag)
+	{
+		do_build(cmd); // DANGEROUS: do_build expects a build-cmd, not a run-cmd.
+	}
+
+	do_just_run(cmd.get_application_arguments());
+}
+
+void do_just_run(string[] args)
 {
 	Project p = load();
 
 	writeln(CTRACE ~ "    [1/1 coal run] " ~ CINFO ~ "Running executable " ~ CFOCUS ~ p.name ~ CCLEAR);
 
 	const string program_path = buildPath(".", p.build_dir, p.name) ~ ".exe";
-	const string[] params = cmd.passthrough_params;
+	const string[] params = args;
 
 	auto proc = spawnProcess([program_path] ~ params);
 	wait(proc);

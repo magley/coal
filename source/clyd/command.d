@@ -86,6 +86,7 @@ class Command
 
             if (callback == null)
             {
+                // TODO: Maybe invoke help by default? Or specify what's going on?
                 writeln("No callback defined for command " ~ name);
                 exit(1);
             }
@@ -94,6 +95,7 @@ class Command
         }
         catch (ArgException e)
         {
+            // TODO: Nicer output. Have to split arg name and arg message for colors.
             writeln(e.message);
             exit(1);
         }
@@ -175,9 +177,20 @@ class Command
 
             if (key !in args)
             {
-                writeln(args);
-                writeln(key);
-                writefln("Unknown argument %s", key);
+                import input;
+
+                writefln(
+                    CERR ~ "Unknown argument "
+                        ~ CFOCUS ~ key);
+                writeln();
+                // TODO: We want to do full command chain here.
+                writefln(
+                    CINFO ~ "Use "
+                        ~ CFOCUS ~ "--help"
+                        ~ CINFO ~ " for a list of commands"
+                        ~ CCLEAR
+                );
+
                 exit(1);
             }
 

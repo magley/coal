@@ -5,24 +5,19 @@ import core.stdc.stdlib;
 import std.file;
 import std.path;
 import std.stdio;
-import cli;
+import clyd.command;
 
-Project do_init(const ref Command_init cmd)
-{
-	return do_init(cmd.project_name.get, cmd.source_dir.get, cmd.build_dir.get, cmd.generator.get);
-}
-
-Project do_init(const ref Command_template_spawn cmd)
+Project do_init(Command cmd_init)
 {
 	return do_init(
-		cmd.project_name.get_strict,
-		cmd.source_dir.get_strict,
-		cmd.build_dir.get_strict,
-		cmd.generator.get_strict
+		cmd_init.args["name"].value,
+		cmd_init.args["src"].value,
+		cmd_init.args["build"].value,
+		cmd_init.args["generator"].value,
 	);
 }
 
-private Project do_init(string name, string source_dir, string build_dir, string generator)
+Project do_init(string name, string source_dir, string build_dir, string generator)
 {
 	Project p = new Project();
 	p.name = name;

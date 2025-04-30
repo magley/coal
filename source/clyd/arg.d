@@ -92,7 +92,6 @@ class Arg
         }
         if (values_[0] == null)
         {
-            writeln(values_);
             throw new ArgMissingValueException(name);
         }
         return values_[0];

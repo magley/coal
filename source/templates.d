@@ -1,4 +1,3 @@
-import cli;
 import std.file;
 import std.json;
 import std.algorithm;
@@ -10,12 +9,13 @@ import coalfile;
 import std.typecons;
 import std.conv;
 import input;
+import clyd.command;
 
-void do_list_templates(const ref Command_template_list cmd)
+void do_list_template(Command cmd)
 {
     TemplatesFile templates = load_templates();
 
-    if (cmd.verbose.get)
+    if (cmd.args["verbose"].is_set_flag)
     {
         foreach (const ref t; templates.templates)
         {
@@ -28,12 +28,16 @@ void do_list_templates(const ref Command_template_list cmd)
     }
 }
 
-void do_new_template(const ref Command_template_new cmd)
+void do_new_template(Command cmd)
 {
+    string name = cmd.args["name"].value;
+    string path = cmd.args["path"].value;
+    string desc = cmd.args["desc"].value;
+
     Template t = new Template();
-    t.name = cmd.name.get;
-    t.path = cmd.path.get;
-    t.description = cmd.desc.get;
+    t.name = name;
+    t.path = path;
+    t.description = desc;
 
     if (!exists(t.path))
     {
@@ -58,28 +62,36 @@ void do_new_template(const ref Command_template_new cmd)
     save_templates(templates);
 }
 
-void do_spawn_from_template(const ref Command_template_spawn cmd)
+void do_clone_from_template(Command cmd)
 {
     import project;
     import input;
+
+    string template_name = cmd.args["template"].value;
+    string name = cmd.args["name"].value;
+
+    // TODO: These values should override the ones from the cloned coalfile.
+    string src = cmd.args["src"].value_or(null);
+    string build = cmd.args["build"].value_or(null);
+    string generator = cmd.args["generator"].value_or(null);
 
     const TemplatesFile templates = load_templates();
 
     // [1] Load template.
 
-    const Template t = templates.get_template(cmd.template_name.get);
+    const Template t = templates.get_template(template_name);
     if (t is null)
     {
-        writefln(CERR ~ "Unknown template " ~ CFOCUS ~ "%s" ~ CCLEAR, cmd.template_name.get);
+        writefln(CERR ~ "Unknown template " ~ CFOCUS ~ "%s" ~ CCLEAR, template_name);
         exit(1);
     }
 
     writeln(""
             ~ CTRACE ~ "    [1/3 coal template] "
             ~ CINFO ~ "Creating project "
-            ~ CFOCUS ~ cmd.project_name.get
+            ~ CFOCUS ~ name
             ~ CINFO ~ " from template "
-            ~ CFOCUS ~ cmd.template_name.get
+            ~ CFOCUS ~ template_name
             ~ CCLEAR);
 
     // [2] Create project file.
@@ -97,12 +109,12 @@ void do_spawn_from_template(const ref Command_template_spawn cmd)
             ""
                 ~ CTRACE ~ "    [2/3 coal template] "
                 ~ CINFO ~ "Cloning coalfile from template "
-                ~ CFOCUS ~ cmd.template_name.get
+                ~ CFOCUS ~ template_name
                 ~ CCLEAR);
 
         Project template_project = load(t.path);
         p = template_project.clone();
-        p.name = cmd.project_name.get();
+        p.name = name;
         save(p, ".");
     }
     else
@@ -112,7 +124,7 @@ void do_spawn_from_template(const ref Command_template_spawn cmd)
         writeln(""
                 ~ CTRACE ~ "    [2/3 coal template] "
                 ~ CINFO ~ "Template "
-                ~ CFOCUS ~ cmd.template_name.get
+                ~ CFOCUS ~ template_name
                 ~ CINFO ~ " has no coalfile (expected "
                 ~ CCLEAR ~ buildPath(t.path, "coalfile")
                 ~ CINFO ~ "). Generating a new coal project"
@@ -130,7 +142,7 @@ void do_spawn_from_template(const ref Command_template_spawn cmd)
         writeln(""
                 ~ CTRACE ~ "    [3/3 coal template] "
                 ~ CINFO ~ "Copying files from template "
-                ~ CFOCUS ~ cmd.template_name.get
+                ~ CFOCUS ~ template_name
                 ~ CINFO ~ " into project "
                 ~ CFOCUS ~ p.name
                 ~ CINFO ~ "\n        ("
@@ -142,6 +154,7 @@ void do_spawn_from_template(const ref Command_template_spawn cmd)
                 ~ CCLEAR);
 
         // Prevent infinite loops.
+        // TODO: foo/bar -> foo/bar2 SHOULD work normally.
         {
             string template_path = t.path;
             string project_path = ".";
@@ -169,14 +182,15 @@ void do_spawn_from_template(const ref Command_template_spawn cmd)
         // Copy coalfile.private from template (because we ignore build dir
         // which is where coalfile.private is kept).
         {
-            string src = buildPath(t.path, p.build_dir, "coalfile.private");
-            if (exists(src))
+            string src_path = buildPath(t.path, p.build_dir, "coalfile.private");
+            if (exists(src_path))
             {
-                string dst = buildPath(p.build_dir, "coalfile.private");
-                copy(src, dst);
+                string dst_path = buildPath(p.build_dir, "coalfile.private");
+                copy(src_path, dst_path);
             }
         }
     }
+
 }
 
 class Template
