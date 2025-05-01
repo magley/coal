@@ -4,9 +4,13 @@ import std.format;
 
 class ArgException : Exception
 {
-    this(string arg, string message)
+    string arg;
+    string msg;
+    this(string arg, string msg)
     {
-        super(format("%s: %s", arg, message));
+        this.arg = arg;
+        this.msg = msg;
+        super(format("%s: %s", arg, msg));
     }
 }
 

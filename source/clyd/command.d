@@ -8,6 +8,7 @@ import core.stdc.stdlib;
 import std.algorithm;
 import clyd.exception;
 import clyd.arg;
+import input;
 
 alias CommandCallback = void function(Command self);
 
@@ -107,7 +108,8 @@ class Command
         }
         catch (ArgException e)
         {
-            // TODO: Nicer output. Have to split arg name and arg message for colors.
+            writefln(CERR ~ "Error " ~ CINFO ~ "handling argument " ~ CFOCUS ~ "%s: " ~ CERR ~ "%s" ~ CCLEAR, e.arg, e
+                    .msg);
             writeln(e.message);
             exit(1);
         }
@@ -116,8 +118,6 @@ class Command
     /// Show help.
     private void help()
     {
-        import input;
-
         string name_chained = command_chain.join(" ");
         writefln(""
                 ~ CINFO ~ "USAGE: "
@@ -139,10 +139,18 @@ class Command
         writeln(CINFO ~ desc);
         writeln();
 
-        // TODO: Alignment doesn't work properly.
-
         if (args.length > 0)
         {
+            const int SPACING = 3;
+
+            ulong w_shorthand = unique_args.map!(a => a.shorthand.length).maxElement();
+            w_shorthand += "-".length;
+            w_shorthand += SPACING;
+
+            ulong w_name = unique_args.map!(a => a.name.length).maxElement();
+            w_name += "--".length;
+            w_name += SPACING;
+
             writeln(CCLEAR ~ "Options");
             writeln(CCLEAR ~ "=======");
             writeln();
@@ -150,9 +158,9 @@ class Command
             {
                 string shorthand_flag = arg.shorthand != null ? ("-" ~ arg.shorthand) : "";
                 string flag = ("--" ~ arg.name);
-                writefln(CTRACE ~ "%s\t" ~ CFOCUS ~ "%s\t\t" ~ CINFO ~ "%s",
-                    shorthand_flag,
-                    flag,
+                writefln("  " ~ CTRACE ~ "%-*s" ~ CFOCUS ~ "%-*s" ~ CINFO ~ "%s",
+                    w_shorthand, shorthand_flag,
+                    w_name, flag,
                     arg.desc
                 );
             }
@@ -161,13 +169,18 @@ class Command
 
         if (subcmd.length > 0)
         {
+            const int SPACING = 3;
+
+            ulong w_cmdname = subcmd.values.map!(cmd => cmd.name.length).maxElement();
+            w_cmdname += SPACING;
+
             writeln(CCLEAR ~ "Subcommands");
             writeln(CCLEAR ~ "===========");
             writeln();
             foreach (cmd; subcmd)
             {
-                writefln("\t" ~ CFOCUS ~ "%s\t\t" ~ CINFO ~ "%s",
-                    cmd.name,
+                writefln("  " ~ CFOCUS ~ "%-*s" ~ CINFO ~ "%s",
+                    w_cmdname, cmd.name,
                     cmd.desc,
                 );
             }
@@ -215,8 +228,6 @@ class Command
 
             if (key !in args)
             {
-                import input;
-
                 writefln(
                     CERR ~ "Unknown command line flag "
                         ~ CFOCUS ~ key);
