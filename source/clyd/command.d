@@ -18,6 +18,7 @@ class Command
     string name;
     string desc;
     Command[string] subcmd;
+    Command supercmd;
     Arg[string] args;
     CommandCallback callback;
 
@@ -26,7 +27,17 @@ class Command
         this.name = name;
         this.desc = desc;
         this.subcmd = null;
+        this.supercmd = null;
         this.callback = null;
+    }
+
+    string[] command_chain() const
+    {
+        if (supercmd !is null)
+        {
+            return supercmd.command_chain() ~ name;
+        }
+        return [name];
     }
 
     /// Add subcommand to this command.
@@ -34,6 +45,7 @@ class Command
     Command subcommand(Command cmd)
     {
         subcmd[cmd.name] = cmd;
+        cmd.supercmd = this;
         return this;
     }
 
@@ -104,39 +116,65 @@ class Command
     /// Show help.
     private void help()
     {
-        // TODO: Show supercommands as well. So it would be `coal template add` instead of `add`.
-        writefln("USAGE: %s [--help] [<command>] [<options...>] [-- [<application arguments...>]]", name);
+        import input;
+
+        string name_chained = command_chain.join(" ");
+        writefln(""
+                ~ CINFO ~ "USAGE: "
+                ~ CFOCUS ~ "%s "
+                ~ CINFO ~ "["
+                ~ CTRACE ~ "--help"
+                ~ CINFO ~ "] "
+                ~ CINFO ~ "["
+                ~ CTRACE ~ "<command>"
+                ~ CINFO ~ "] "
+                ~ CINFO ~ "["
+                ~ CTRACE ~ "<options...>"
+                ~ CINFO ~ "] "
+                ~ CINFO ~ "["
+                ~ CTRACE ~ "-- [<application arguments...>]"
+                ~ CINFO ~ "]", name_chained
+        );
         writeln();
-        writeln(desc);
+        writeln(CINFO ~ desc);
         writeln();
 
         // TODO: Alignment doesn't work properly.
 
         if (args.length > 0)
         {
-            writeln("Options");
-            writeln("=======");
+            writeln(CCLEAR ~ "Options");
+            writeln(CCLEAR ~ "=======");
             writeln();
             foreach (arg; unique_args)
             {
                 string shorthand_flag = arg.shorthand != null ? ("-" ~ arg.shorthand) : "";
                 string flag = ("--" ~ arg.name);
-                writefln("%s\t%s\t\t%s", shorthand_flag, flag, arg.desc);
+                writefln(CTRACE ~ "%s\t" ~ CFOCUS ~ "%s\t\t" ~ CINFO ~ "%s",
+                    shorthand_flag,
+                    flag,
+                    arg.desc
+                );
             }
             writeln();
         }
 
         if (subcmd.length > 0)
         {
-            writeln("Subcommands");
-            writeln("===========");
+            writeln(CCLEAR ~ "Subcommands");
+            writeln(CCLEAR ~ "===========");
             writeln();
             foreach (cmd; subcmd)
             {
-                writefln("\t%s\t\t%s", cmd.name, cmd.desc);
+                writefln("\t" ~ CFOCUS ~ "%s\t\t" ~ CINFO ~ "%s",
+                    cmd.name,
+                    cmd.desc,
+                );
             }
             writeln();
         }
+
+        write(CCLEAR);
     }
 
     /// Returns: List of unique arguments (removing duplicates caused by shorthand argument names).
@@ -180,14 +218,14 @@ class Command
                 import input;
 
                 writefln(
-                    CERR ~ "Unknown argument "
+                    CERR ~ "Unknown command line flag "
                         ~ CFOCUS ~ key);
                 writeln();
-                // TODO: We want to do full command chain here.
+                const string name_chained = command_chain.join(" ");
                 writefln(
-                    CINFO ~ "Use "
-                        ~ CFOCUS ~ "--help"
-                        ~ CINFO ~ " for a list of commands"
+                    CINFO ~ "Type "
+                        ~ CFOCUS ~ name_chained ~ " --help"
+                        ~ CINFO ~ " for a list of supported flags"
                         ~ CCLEAR
                 );
 
