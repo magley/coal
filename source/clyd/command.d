@@ -99,8 +99,18 @@ class Command
 
             if (callback == null)
             {
-                // TODO: Maybe invoke help by default? Or specify what's going on?
-                writeln("No callback defined for command " ~ name);
+                string full_name = command_chain().join(" ");
+                writefln(CERR ~ "No callback defined for command " ~ CFOCUS ~ "%s\n", full_name);
+                writefln(
+                    CCLEAR ~ "If you are the developer of this program, declare a callback function");
+                writefln(CINFO ~ "    cmd = new Command(\"%s\", [...]);", name);
+                writefln(CINFO ~ "    cmd.set_callback(&func);");
+                writeln();
+                writefln(CCLEAR ~ "If you are a user of this program, notify the developer");
+                writefln("=======================================================");
+                writeln(CCLEAR);
+
+                help();
                 exit(1);
             }
 
