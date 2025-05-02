@@ -93,7 +93,6 @@ Project load(string directory = ".")
 		}
 	}
 
-	save(p);
 	return p;
 }
 

@@ -9,7 +9,15 @@ import clyd.command;
 
 Project do_init(Command cmd_init)
 {
-	return do_init(
+	Project p = do_init_without_save(cmd_init);
+	save(p);
+	create_stub(p);
+	return p;
+}
+
+Project do_init_without_save(Command cmd_init)
+{
+	return do_init_without_save(
 		cmd_init.args["name"].value,
 		cmd_init.args["src"].value,
 		cmd_init.args["build"].value,
@@ -17,7 +25,7 @@ Project do_init(Command cmd_init)
 	);
 }
 
-Project do_init(string name, string source_dir, string build_dir, string generator)
+private Project do_init_without_save(string name, string source_dir, string build_dir, string generator)
 {
 	Project p = new Project();
 	p.name = name;
@@ -26,13 +34,10 @@ Project do_init(string name, string source_dir, string build_dir, string generat
 	p.generator = generator;
 	p.libs = [];
 
-	save(p);
-	create_stub(p);
-
 	return p;
 }
 
-private void create_stub(Project p)
+void create_stub(Project p)
 {
 	{
 		string dir = buildPath(".", p.source_dirs[0]);

@@ -7,7 +7,7 @@ import add;
 import build;
 import templates;
 
-const VERSION = "0.2";
+const VERSION = "0.3";
 
 void main(string[] args)
 {

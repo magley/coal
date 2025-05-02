@@ -9,6 +9,7 @@ import coalfile;
 import std.typecons;
 import std.conv;
 import input;
+import init;
 import clyd.command;
 
 void do_list_template(Command cmd)
@@ -100,8 +101,9 @@ void do_clone_from_template(Command cmd)
     // didn't specify some parameter properly. It's not a good idea to copy
     // first, do logic, and then delete files in case of an error.
 
-    const bool brand_new_coalfile = !coalfile_exists(t.path);
     Project p;
+
+    const bool brand_new_coalfile = !coalfile_exists(t.path);
     if (!brand_new_coalfile)
     {
         writeln(
@@ -128,9 +130,8 @@ void do_clone_from_template(Command cmd)
                 ~ CINFO ~ "). Generating a new coal project"
                 ~ CCLEAR);
 
-        p = do_init(cmd);
+        p = do_init_without_save(cmd);
     }
-    assert(exists("./coalfile"));
 
     // [3] Override src, build etc. if provided and if not a brand new coalfile.
 
@@ -173,8 +174,6 @@ void do_clone_from_template(Command cmd)
         }
     }
 
-    save(p, ".");
-
     // [4] Copy files.
 
     {
@@ -195,7 +194,6 @@ void do_clone_from_template(Command cmd)
                 ~ CCLEAR);
 
         // Prevent infinite loops.
-        // TODO: foo/bar -> foo/bar2 SHOULD work normally.
         {
             string template_path = t.path;
             string project_path = ".";
@@ -231,6 +229,15 @@ void do_clone_from_template(Command cmd)
             }
         }
     }
+
+    // [5] After the files have been copied, we can optionally create stub. And
+    // also save the new coalfile.
+
+    if (brand_new_coalfile)
+    {
+        create_stub(p);
+    }
+    save(p, ".");
 }
 
 class Template
