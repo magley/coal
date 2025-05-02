@@ -69,8 +69,6 @@ void do_clone_from_template(Command cmd)
 
     string template_name = cmd.args["template"].value;
     string name = cmd.args["name"].value;
-
-    // TODO: These values should override the ones from the cloned coalfile.
     string src = cmd.args["src"].value_or(null);
     string build = cmd.args["build"].value_or(null);
     string generator = cmd.args["generator"].value_or(null);
@@ -102,8 +100,9 @@ void do_clone_from_template(Command cmd)
     // didn't specify some parameter properly. It's not a good idea to copy
     // first, do logic, and then delete files in case of an error.
 
+    const bool brand_new_coalfile = !coalfile_exists(t.path);
     Project p;
-    if (coalfile_exists(t.path))
+    if (!brand_new_coalfile)
     {
         writeln(
             ""
@@ -115,7 +114,6 @@ void do_clone_from_template(Command cmd)
         Project template_project = load(t.path);
         p = template_project.clone();
         p.name = name;
-        save(p, ".");
     }
     else
     {
@@ -134,7 +132,50 @@ void do_clone_from_template(Command cmd)
     }
     assert(exists("./coalfile"));
 
-    // [3] Copy files.
+    // [3] Override src, build etc. if provided and if not a brand new coalfile.
+
+    if (!brand_new_coalfile)
+    {
+        if (src !is null)
+        {
+            writeln(""
+                    ~ CWARN ~ "        Overriding source folders from "
+                    ~ CINFO ~ p.source_dirs.join(
+                        ", ")
+                    ~ CWARN ~ " to "
+                    ~ CINFO ~ src
+                    ~ CCLEAR);
+
+            p.source_dirs = [src];
+        }
+        if (build !is null)
+        {
+            writeln(
+                ""
+                    ~ CWARN ~ "        Overriding build folder from "
+                    ~ CINFO ~ p.build_dir
+                    ~ CWARN ~ " to "
+                    ~ CINFO ~ build
+                    ~ CCLEAR);
+
+            p.build_dir = build;
+        }
+        if (generator !is null)
+        {
+            writeln(""
+                    ~ CWARN ~ "        Overriding generator from "
+                    ~ CINFO ~ p.generator
+                    ~ CWARN ~ " to "
+                    ~ CINFO ~ generator
+                    ~ CCLEAR);
+
+            p.generator = generator;
+        }
+    }
+
+    save(p, ".");
+
+    // [4] Copy files.
 
     {
         import fileio;
@@ -190,7 +231,6 @@ void do_clone_from_template(Command cmd)
             }
         }
     }
-
 }
 
 class Template
