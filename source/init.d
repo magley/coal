@@ -5,24 +5,27 @@ import core.stdc.stdlib;
 import std.file;
 import std.path;
 import std.stdio;
-import cli;
+import clyd.command;
 
-Project do_init(const ref Command_init cmd)
+Project do_init(Command cmd_init)
 {
-	return do_init(cmd.project_name.get, cmd.source_dir.get, cmd.build_dir.get, cmd.generator.get);
+	Project p = do_init_without_save(cmd_init);
+	save(p);
+	create_stub(p);
+	return p;
 }
 
-Project do_init(const ref Command_template_spawn cmd)
+Project do_init_without_save(Command cmd_init)
 {
-	return do_init(
-		cmd.project_name.get_strict,
-		cmd.source_dir.get_strict,
-		cmd.build_dir.get_strict,
-		cmd.generator.get_strict
+	return do_init_without_save(
+		cmd_init.args["name"].value,
+		cmd_init.args["src"].value,
+		cmd_init.args["build"].value,
+		cmd_init.args["generator"].value,
 	);
 }
 
-private Project do_init(string name, string source_dir, string build_dir, string generator)
+private Project do_init_without_save(string name, string source_dir, string build_dir, string generator)
 {
 	Project p = new Project();
 	p.name = name;
@@ -31,13 +34,10 @@ private Project do_init(string name, string source_dir, string build_dir, string
 	p.generator = generator;
 	p.libs = [];
 
-	save(p);
-	create_stub(p);
-
 	return p;
 }
 
-private void create_stub(Project p)
+void create_stub(Project p)
 {
 	{
 		string dir = buildPath(".", p.source_dirs[0]);

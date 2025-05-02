@@ -62,16 +62,29 @@ bool is_subdirectory(string haystack, string needle, bool case_insensitive = fal
     string absA = haystack.buildPath.absolutePath.replace("\\", "/");
     string absB = needle.buildPath.absolutePath.replace("\\", "/");
 
-    while (absA.endsWith(".") || absA.endsWith("/"))
-    {
-        absA = absA[0 .. $ - 1];
-    }
-
     if (case_insensitive)
     {
         absA = absA.toLower();
         absB = absB.toLower();
     }
 
-    return absB.startsWith(absA);
+    string rel = relativePath(absB, absA);
+
+    if (rel.startsWith(".."))
+        return false;
+    if (rel == absB)
+        return false;
+    return true;
+}
+
+unittest
+{
+    assert(!is_subdirectory("./src", "."));
+    assert(!is_subdirectory("./src", "./bin"));
+    assert(is_subdirectory("./src", "./src"));
+    assert(is_subdirectory("./src", "./src/bi"));
+    assert(!is_subdirectory("./src", "./src2"));
+    assert(!is_subdirectory("C:/gogo", "D:/gogo"));
+    assert(!is_subdirectory("a/b", "b/a"));
+
 }
