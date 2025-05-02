@@ -41,9 +41,10 @@ dub build
 
 ## Example
 
-`coal` assumes CMake and a C++ compiler are installed.
+`coal` assumes you have CMake and a C++ compiler installed.
 
-For more info on the commands and their parameters, see `coal help`.
+You can invoke the help on any command using `[cmd] --help`.
+This will list all the arguments and any subcommands.
 
 - Initialize a project called `myproject`:
 ```sh
@@ -86,15 +87,12 @@ coal template new
     --path "D:/foo/bar/my_opengl_project"
 ```
 
-- Create a new project using the template:
+- Create a new project using the existing template:
 
 ```sh
-coal template spawn 
+coal template clone 
     --template "OpenGL template" 
     --name "My new program"
-    --source source/
-    --build binaries/
-    --generator "MinGW Makefiles"
 ```
 
 When you clone a template, all of its files are copied to the new project, except for:
