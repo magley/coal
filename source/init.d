@@ -12,17 +12,28 @@ Project do_init(Command cmd_init)
 	Project p = do_init_without_save(cmd_init);
 	save(p);
 	create_stub(p);
+
 	return p;
 }
 
 Project do_init_without_save(Command cmd_init)
 {
-	return do_init_without_save(
+	Project p = do_init_without_save(
 		cmd_init.args["name"].value,
 		cmd_init.args["src"].value,
 		cmd_init.args["build"].value,
 		cmd_init.args["generator"].value,
 	);
+
+	writefln("Initialized "
+			~ CFOCUS ~ cmd_init.args["name"].value
+			~ CCLEAR ~ "\nBuild the project with "
+			~ CFOCUS ~ "coal build"
+			~ CCLEAR ~ " or run the project with "
+			~ CFOCUS ~ "coal run"
+			~ CCLEAR);
+
+	return p;
 }
 
 private Project do_init_without_save(string name, string source_dir, string build_dir, string generator)
