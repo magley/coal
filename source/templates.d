@@ -217,27 +217,32 @@ void do_clone_from_template(Command cmd)
         // Project. If we were to copy the coalfile here, it would override any
         // changes (for example: project name).
         copy_folder_contents(t.path, ".", [".git", p.build_dir], ["coalfile"]);
-
-        // Copy coalfile.private from template (because we ignore build dir
-        // which is where coalfile.private is kept).
-        {
-            string src_path = buildPath(t.path, p.build_dir, "coalfile.private");
-            if (exists(src_path))
-            {
-                string dst_path = buildPath(p.build_dir, "coalfile.private");
-                copy(src_path, dst_path);
-            }
-        }
     }
 
-    // [5] After the files have been copied, we can optionally create stub. And
-    // also save the new coalfile.
+    // [5] After the files have been copied, we can optionally create a stub
+    // file and save the project (thus creating the final coalfile). also save
+    // the new coalfile.
 
     if (brand_new_coalfile)
     {
         create_stub(p);
     }
     save(p, ".");
+
+    // [6] Copy coalfile.private from template (if any). We ignored the source
+    // build dir entirely, including coalfile.private, so this has to be
+    // explicit. This goes after save(p) because then we know for sure that the
+    // project's build directory has been created, which is needed for copy() to
+    // not throw.
+
+    {
+        string src_path = buildPath(t.path, p.build_dir, "coalfile.private");
+        if (exists(src_path))
+        {
+            string dst_path = buildPath(p.build_dir, "coalfile.private");
+            copy(src_path, dst_path);
+        }
+    }
 }
 
 class Template
