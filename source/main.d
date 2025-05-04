@@ -18,7 +18,7 @@ void main(string[] args)
 				.arg(Arg.single("src", "s", "Source code directory (relative)", "src/"))
 				.arg(Arg.single("build", "b", "Binaries directory (relative)", "build/"))
 				.arg(Arg.single("generator", "g", "Which CMake generator to use", "MinGW Makefiles"))
-				.set_callback((Command cmd) { do_init(cmd); })
+				.set_callback((Command cmd) { do_init_new(cmd); })
 		)
 		.subcommand(
 			new Command("add", "Add local library as dependency to project")

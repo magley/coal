@@ -7,36 +7,40 @@ import std.path;
 import std.stdio;
 import clyd.command;
 
-Project do_init(Command cmd_init)
+Project do_init_new(Command cmd_init)
 {
-	Project p = do_init_without_save(cmd_init);
+	Project p = create_new_project(cmd_init);
 	save(p);
 	create_stub(p);
+	after_init(p.name);
 
 	return p;
 }
 
-Project do_init_without_save(Command cmd_init)
+Project create_new_project(Command cmd_init)
 {
-	Project p = do_init_without_save(
+	Project p = create_new_project(
 		cmd_init.args["name"].value,
 		cmd_init.args["src"].value,
 		cmd_init.args["build"].value,
 		cmd_init.args["generator"].value,
 	);
 
+	return p;
+}
+
+void after_init(string project_name)
+{
 	writefln("Initialized "
-			~ CFOCUS ~ cmd_init.args["name"].value
+			~ CFOCUS ~ project_name
 			~ CCLEAR ~ "\nBuild the project with "
 			~ CFOCUS ~ "coal build"
 			~ CCLEAR ~ " or run the project with "
 			~ CFOCUS ~ "coal run"
 			~ CCLEAR);
-
-	return p;
 }
 
-private Project do_init_without_save(string name, string source_dir, string build_dir, string generator)
+private Project create_new_project(string name, string source_dir, string build_dir, string generator)
 {
 	ensure_coalfile_not_exists();
 

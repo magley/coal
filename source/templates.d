@@ -136,7 +136,7 @@ void do_clone_from_template(Command cmd)
                 ~ CINFO ~ "). Generating a new coal project"
                 ~ CCLEAR);
 
-        p = do_init_without_save(cmd);
+        p = create_new_project(cmd);
     }
 
     // [3] Override src, build etc. if provided and if not a brand new coalfile.
@@ -249,6 +249,8 @@ void do_clone_from_template(Command cmd)
             copy(src_path, dst_path);
         }
     }
+
+    after_init(p.name);
 }
 
 class Template
