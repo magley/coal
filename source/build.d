@@ -9,6 +9,7 @@ import std.conv;
 import std.process;
 import input;
 import clyd.command;
+import core.stdc.stdlib;
 
 void do_build(Command cmd)
 {
@@ -45,13 +46,23 @@ void do_just_run(string[] args)
 	const string[] params = args;
 
 	auto proc = spawnProcess([program_path] ~ params);
-	wait(proc);
+	int code = wait(proc);
+	if (code != 0)
+	{
+		writefln(CERR ~ "    [ERR coal run] %s exited with code %d" ~ CCLEAR, p.name, code);
+		exit(1);
+	}
 }
 
 void build_project(Project p)
 {
 	auto proc = spawnProcess(["cmake", "--build", buildPath(".", p.build_dir)]);
-	wait(proc);
+	int code = wait(proc);
+	if (code != 0)
+	{
+		writefln(CERR ~ "    [ERR coal build] CMake build exited with code %d" ~ CCLEAR, code);
+		exit(1);
+	}
 }
 
 void configure_cmakelists(Project p)
@@ -68,7 +79,12 @@ void configure_cmakelists(Project p)
 	auto proc = spawnProcess([
 		"cmake", "-S", ".", "-B", buildPath(".", p.build_dir), "-G", p.generator
 	] ~ vars);
-	wait(proc);
+	int code = wait(proc);
+	if (code != 0)
+	{
+		writefln(CERR ~ "    [ERR coal build] CMake configure exited with code %d" ~ CCLEAR, code);
+		exit(1);
+	}
 }
 
 void create_cmakelists(Project p)
