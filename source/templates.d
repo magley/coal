@@ -65,6 +65,12 @@ void do_new_template(Command cmd)
 
 void do_clone_from_template(Command cmd)
 {
+    ensure_coalfile_not_exists(); // At current directory.
+    // This is also called when initializing a new project,
+    // which may or may not happen later on in this fuinction.
+    // It's not a big deal if we call it multiple times, but
+    // it may cause unexpected issues in the future.
+
     import project;
     import input;
 

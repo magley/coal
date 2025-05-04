@@ -38,6 +38,8 @@ Project do_init_without_save(Command cmd_init)
 
 private Project do_init_without_save(string name, string source_dir, string build_dir, string generator)
 {
+	ensure_coalfile_not_exists();
+
 	Project p = new Project();
 	p.name = name;
 	p.source_dirs = [source_dir];
@@ -50,22 +52,20 @@ private Project do_init_without_save(string name, string source_dir, string buil
 
 void create_stub(Project p)
 {
+	string dir = buildPath(".", p.source_dirs[0]);
+	if (!exists(dir))
 	{
-		string dir = buildPath(".", p.source_dirs[0]);
-		if (!exists(dir))
-		{
-			mkdir(dir);
+		mkdir(dir);
 
-			string fname_main = buildPath(dir, "main.cpp");
-			File file = File(fname_main, "w");
-			file.writeln("#include <iostream>");
-			file.writeln("int main(int argc, char** argv)");
-			file.writeln("{");
-			file.writeln("\tstd::cout << \"Hello World\\n\";");
-			file.writeln("\treturn 0;");
-			file.writeln("}");
+		string fname_main = buildPath(dir, "main.cpp");
+		File file = File(fname_main, "w");
+		file.writeln("#include <iostream>");
+		file.writeln("int main(int argc, char** argv)");
+		file.writeln("{");
+		file.writeln("\tstd::cout << \"Hello World\\n\";");
+		file.writeln("\treturn 0;");
+		file.writeln("}");
 
-			file.close();
-		}
+		file.close();
 	}
 }

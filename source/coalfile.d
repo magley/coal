@@ -106,6 +106,15 @@ private void ensure_coalfile_exists(string directory = ".")
 	}
 }
 
+void ensure_coalfile_not_exists(string directory = ".")
+{
+	if (coalfile_exists(directory))
+	{
+		writefln(CERR ~ "Target directory already contains a coalfile" ~ CCLEAR);
+		exit(1);
+	}
+}
+
 bool coalfile_exists(string directory = ".")
 {
 	string fname = buildPath(directory, "coalfile");
