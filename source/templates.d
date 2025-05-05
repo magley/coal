@@ -91,6 +91,21 @@ void do_clone_from_template(Command cmd)
         exit(1);
     }
 
+    // Check if path is valid. It may have been modified manually.
+
+    {
+        if (!exists(t.path))
+        {
+            writefln(CERR ~ "Path " ~ CFOCUS ~ "%s" ~ CERR ~ " doesn't exist" ~ CCLEAR, t.path);
+            exit(1);
+        }
+        if (!isDir(t.path))
+        {
+            writefln(CERR ~ "Path " ~ CFOCUS ~ "%s" ~ CERR ~ " is not a directory" ~ CCLEAR, t.path);
+            exit(1);
+        }
+    }
+
     writeln(""
             ~ CTRACE ~ "    [1/3 coal template] "
             ~ CINFO ~ "Creating project "
