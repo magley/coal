@@ -64,8 +64,5 @@ void main(string[] args)
 				)
 		);
 
-	import input;
-
-	toggle_color(args, "COAL_NO_COLOR");
-	handle(root, args);
+	handle(root, args, "coal");
 }

@@ -8,7 +8,7 @@ import core.stdc.stdlib;
 import std.algorithm;
 import clyd.exception;
 import clyd.arg;
-import input;
+import clyd.color;
 
 alias CommandCallback = void function(Command self);
 

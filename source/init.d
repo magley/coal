@@ -1,5 +1,5 @@
 import project;
-import input;
+import clyd.color;
 import coalfile;
 import core.stdc.stdlib;
 import std.file;

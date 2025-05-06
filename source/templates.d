@@ -11,6 +11,7 @@ import std.conv;
 import input;
 import init;
 import clyd.command;
+import clyd.color;
 
 void do_list_template(Command cmd)
 {
