@@ -6,8 +6,9 @@ import init;
 import add;
 import build;
 import templates;
+import clean;
 
-const VERSION = "0.3";
+const VERSION = "0.4";
 
 void main(string[] args)
 {
@@ -62,6 +63,10 @@ void main(string[] args)
 					.arg(Arg.single("generator", "g", "Which CMake generator to use", null))
 					.set_callback(&do_clone_from_template)
 				)
+		)
+		.subcommand(new Command("clean", "Clean build files and CMake cache")
+				.arg(Arg.flag("program", "p", "Also remove program binaries and DLLs", false))
+				.set_callback(&do_clean)
 		);
 
 	handle(root, args, "coal");

@@ -45,7 +45,7 @@ bool should_use_color(ref string[] args, string this_program_no_color_env_var_na
 
     if (args.canFind("--no-color"))
     {
-        // HACK: clyd will complain if it find a `--no-color` flag in any of the
+        // HACK: clyd will complain if it finds a `--no-color` flag in any of the
         // commands, so we remove it first. 
         args = args.remove(args.countUntil("--no-color"));
 
