@@ -11,6 +11,7 @@ import std.conv;
 import input;
 import init;
 import clyd.command;
+import clyd.color;
 
 void do_list_template(Command cmd)
 {
@@ -91,6 +92,21 @@ void do_clone_from_template(Command cmd)
         exit(1);
     }
 
+    // Check if path is valid. It may have been modified manually.
+
+    {
+        if (!exists(t.path))
+        {
+            writefln(CERR ~ "Path " ~ CFOCUS ~ "%s" ~ CERR ~ " doesn't exist" ~ CCLEAR, t.path);
+            exit(1);
+        }
+        if (!isDir(t.path))
+        {
+            writefln(CERR ~ "Path " ~ CFOCUS ~ "%s" ~ CERR ~ " is not a directory" ~ CCLEAR, t.path);
+            exit(1);
+        }
+    }
+
     writeln(""
             ~ CTRACE ~ "    [1/3 coal template] "
             ~ CINFO ~ "Creating project "
@@ -136,7 +152,7 @@ void do_clone_from_template(Command cmd)
                 ~ CINFO ~ "). Generating a new coal project"
                 ~ CCLEAR);
 
-        p = do_init_without_save(cmd);
+        p = create_new_project(cmd);
     }
 
     // [3] Override src, build etc. if provided and if not a brand new coalfile.
@@ -249,6 +265,8 @@ void do_clone_from_template(Command cmd)
             copy(src_path, dst_path);
         }
     }
+
+    after_init(p.name);
 }
 
 class Template

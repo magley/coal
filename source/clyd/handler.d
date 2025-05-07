@@ -3,16 +3,23 @@ module clyd.handler;
 import std.array;
 import std.algorithm;
 import std.stdio;
+import std.string;
 import core.stdc.stdlib;
 import clyd.arg;
 import clyd.command;
+import clyd.color;
 
 /// 
 /// Params:
 ///   root = The root command of the program.
 ///   args = Arguments provided by the program's entry point (`main()`).
-void handle(Command root, string[] args)
+///   program_name = Name of the program, used for program-specific no-color env var.q 
+void handle(Command root, string[] args, string program_name)
 {
+    // [0] Toggle color. This _will_ modify `args` if it contains a --no-color
+    // flag - it'll remove the flag.
+    toggle_color(args, program_name.toUpper().replace(" ", "_") ~ "_NO_COLOR");
+
     // [1] Ignore 0th command-line arg (program name).
 
     args = args[1 .. $];

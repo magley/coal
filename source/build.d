@@ -7,7 +7,7 @@ import std.file;
 import std.array;
 import std.conv;
 import std.process;
-import input;
+import clyd.color;
 import clyd.command;
 import core.stdc.stdlib;
 
