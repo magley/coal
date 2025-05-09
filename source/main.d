@@ -19,6 +19,8 @@ void main(string[] args)
 				.arg(Arg.single("src", "s", "Source code directory (relative)", "src/"))
 				.arg(Arg.single("build", "b", "Binaries directory (relative)", "build/"))
 				.arg(Arg.single("generator", "g", "Which CMake generator to use", "MinGW Makefiles"))
+				.arg(Arg.single("cmake-ver-min", null, "Minimum supported CMake min version", "3.15"))
+				.arg(Arg.single("cmake-ver-max", null, "Maximum supported CMake min version", "4.0"))
 				.set_callback((Command cmd) { do_init_new(cmd); })
 		)
 		.subcommand(
