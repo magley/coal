@@ -8,6 +8,8 @@ import std.algorithm;
 import std.format;
 import input;
 import clyd.color;
+import std.conv;
+import std.array;
 
 void save(Project p, string directory = ".")
 {
@@ -95,8 +97,6 @@ Project load(string directory = ".")
 	}
 	// Handle invalid version
 	{
-		import std.conv;
-
 		void validate_version_or_exit(string version_string, string variable_name)
 		{
 			try
@@ -113,6 +113,24 @@ Project load(string directory = ".")
 
 		validate_version_or_exit(p.cmake_version_min, "CMake minimum version");
 		validate_version_or_exit(p.cmake_version_max, "CMake maximum version");
+	}
+	// Handle invalid c++ version
+	{
+		const int[] allowed_versions = [98, 11, 14, 17, 20, 23, 26];
+		try
+		{
+			int v = p.cpp_version.to!(int)();
+			if (!canFind(allowed_versions, v))
+			{
+				throw new Exception("Invalid version");
+			}
+		}
+		catch (Exception)
+		{
+			writefln(CERR ~ "Invalid C++ version " ~ CINFO ~ p.cpp_version);
+			writefln(CERR ~ "Must be any of " ~ CINFO ~ to!(string)(allowed_versions) ~ CCLEAR);
+			exit(1);
+		}
 	}
 
 	return p;
