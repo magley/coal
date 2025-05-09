@@ -25,7 +25,8 @@ Project create_new_project(Command cmd_init)
 		cmd_init.args["build"].value,
 		cmd_init.args["generator"].value,
 		cmd_init.args["cmake-ver-min"].value,
-		cmd_init.args["cmake-ver-max"].value
+		cmd_init.args["cmake-ver-max"].value,
+		cmd_init.args["cpp"].value,
 	);
 
 	return p;
@@ -43,7 +44,8 @@ void after_init(string project_name)
 }
 
 private Project create_new_project(
-	string name, string source_dir, string build_dir, string generator, string cmake_ver_min, string cmake_ver_max)
+	string name, string source_dir, string build_dir, string generator,
+	string cmake_ver_min, string cmake_ver_max, string cpp_ver)
 {
 	ensure_coalfile_not_exists();
 
@@ -54,6 +56,7 @@ private Project create_new_project(
 	p.generator = generator;
 	p.cmake_version_min = cmake_ver_min;
 	p.cmake_version_max = cmake_ver_max;
+	p.cpp_version = cpp_ver;
 	p.libs = [];
 
 	return p;
