@@ -93,6 +93,27 @@ Project load(string directory = ".")
 			}
 		}
 	}
+	// Handle invalid version
+	{
+		import std.conv;
+
+		void validate_version_or_exit(string version_string, string variable_name)
+		{
+			try
+			{
+				version_string.to!(float)();
+			}
+			catch (ConvException)
+			{
+				writefln(CERR ~ "Invalid " ~ variable_name ~ ": " ~ CINFO ~ version_string);
+				writefln(CERR ~ "Must be a number" ~ CCLEAR);
+				exit(1);
+			}
+		}
+
+		validate_version_or_exit(p.cmake_version_min, "CMake minimum version");
+		validate_version_or_exit(p.cmake_version_max, "CMake maximum version");
+	}
 
 	return p;
 }
