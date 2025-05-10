@@ -10,6 +10,7 @@ import input;
 import clyd.color;
 import std.conv;
 import std.array;
+import config;
 
 void save(Project p, string directory = ".")
 {
@@ -116,11 +117,10 @@ Project load(string directory = ".")
 	}
 	// Handle invalid c++ version
 	{
-		const int[] allowed_versions = [98, 11, 14, 17, 20, 23, 26];
 		try
 		{
 			int v = p.cpp_version.to!(int)();
-			if (!canFind(allowed_versions, v))
+			if (!canFind(CPP_ALLOWED_VERSIONS, v))
 			{
 				throw new Exception("Invalid version");
 			}
@@ -128,7 +128,7 @@ Project load(string directory = ".")
 		catch (Exception)
 		{
 			writefln(CERR ~ "Invalid C++ version " ~ CINFO ~ p.cpp_version);
-			writefln(CERR ~ "Must be any of " ~ CINFO ~ to!(string)(allowed_versions) ~ CCLEAR);
+			writefln(CERR ~ "Must be any of " ~ CINFO ~ to!(string)(CPP_ALLOWED_VERSIONS) ~ CCLEAR);
 			exit(1);
 		}
 	}

@@ -120,7 +120,6 @@ class Command
         {
             writefln(CERR ~ "Error " ~ CINFO ~ "handling argument " ~ CFOCUS ~ "%s: " ~ CERR ~ "%s" ~ CCLEAR, e.arg, e
                     .msg);
-            writeln(e.message);
             exit(1);
         }
     }
