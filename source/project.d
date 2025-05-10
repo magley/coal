@@ -12,6 +12,9 @@ class Project
 	string build_dir = "";
 	string generator = "";
 	Library[] libs = [];
+	string cmake_version_min = "";
+	string cmake_version_max = "";
+	string cpp_version = "";
 
 	Project clone() const
 	{
@@ -27,6 +30,9 @@ class Project
 		j["source_dirs"] = source_dirs;
 		j["build_dir"] = build_dir;
 		j["generator"] = generator;
+		j["cmake_version_min"] = cmake_version_min;
+		j["cmake_version_max"] = cmake_version_max;
+		j["cpp_version"] = cpp_version;
 
 		JSONValue[] libs_json = [];
 		foreach (const Library lib; libs)
@@ -43,6 +49,10 @@ class Project
 		source_dirs = j["source_dirs"].array.map!(x => x.str).array;
 		build_dir = j["build_dir"].str;
 		generator = j["generator"].str;
+		cmake_version_min = j["cmake_version_min"].str;
+		cmake_version_max = j["cmake_version_max"].str;
+		cpp_version = j["cpp_version"].str;
+
 		foreach (const lib_json; j["libs"].array)
 		{
 			Library lib;

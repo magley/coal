@@ -171,10 +171,11 @@ string generate_cmakelists_text(const ref CMakeLists_Manifest manifest, Project 
 	S.put("############################################################\n");
 	S.put("\n");
 
-	S.put("cmake_minimum_required(VERSION 3.15...4.0)\n");
+	S.put(format("cmake_minimum_required(VERSION %s...%s)\n",
+			p.cmake_version_min, p.cmake_version_max));
 	S.put("\n");
 	S.put(format("project(%s VERSION 1.0 LANGUAGES CXX)\n", p.name));
-	S.put(format("set(CMAKE_CXX_STANDARD 17)\n"));
+	S.put(format("set(CMAKE_CXX_STANDARD %s)\n", p.cpp_version));
 	S.put(format("set(CMAKE_EXPORT_COMPILE_COMMANDS 1)\n"));
 	S.put("\n");
 

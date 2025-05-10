@@ -8,6 +8,9 @@ import std.algorithm;
 import std.format;
 import input;
 import clyd.color;
+import std.conv;
+import std.array;
+import config;
 
 void save(Project p, string directory = ".")
 {
@@ -91,6 +94,42 @@ Project load(string directory = ".")
 				string new_path = input_dir_non_empty(format("Enter path for library %s", lib.name));
 				lib.path = new_path;
 			}
+		}
+	}
+	// Handle invalid version
+	{
+		void validate_version_or_exit(string version_string, string variable_name)
+		{
+			try
+			{
+				version_string.to!(float)();
+			}
+			catch (ConvException)
+			{
+				writefln(CERR ~ "Invalid " ~ variable_name ~ ": " ~ CINFO ~ version_string);
+				writefln(CERR ~ "Must be a number" ~ CCLEAR);
+				exit(1);
+			}
+		}
+
+		validate_version_or_exit(p.cmake_version_min, "CMake minimum version");
+		validate_version_or_exit(p.cmake_version_max, "CMake maximum version");
+	}
+	// Handle invalid c++ version
+	{
+		try
+		{
+			int v = p.cpp_version.to!(int)();
+			if (!canFind(CPP_ALLOWED_VERSIONS, v))
+			{
+				throw new Exception("Invalid version");
+			}
+		}
+		catch (Exception)
+		{
+			writefln(CERR ~ "Invalid C++ version " ~ CINFO ~ p.cpp_version);
+			writefln(CERR ~ "Must be any of " ~ CINFO ~ to!(string)(CPP_ALLOWED_VERSIONS) ~ CCLEAR);
+			exit(1);
 		}
 	}
 

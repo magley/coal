@@ -21,6 +21,7 @@ class Arg
     string desc;
     string shorthand;
     string[] values_;
+    string[] allowed;
     Type type;
 
     /// Construct argument which accepts a single string value.
@@ -29,13 +30,15 @@ class Arg
     ///   shorthand = Shorthand name (optional). Used in program as -{shorthand}
     ///   desc = Argument description, shown in help menus.
     ///   default_value = Default value for an argument, if none is specified.
-    static Arg single(string name, string shorthand, string desc, string default_value)
+    static Arg single(string name, string shorthand, string desc, string default_value, string[] allowed = [
+        ])
     {
         Arg a = new Arg();
         a.name = name;
         a.shorthand = shorthand;
         a.desc = desc;
         a.values_ = [default_value];
+        a.allowed = allowed;
         a.type = Type.Single;
         return a;
     }
@@ -46,13 +49,15 @@ class Arg
     ///   shorthand = Shorthand name (optional). Used in program as -{shorthand}
     ///   desc = Argument description, shown in help menus.
     ///   default_value = Default value for an argument, if none is specified.
-    static Arg multiple(string name, string shorthand, string desc, string[] default_value)
+    static Arg multiple(string name, string shorthand, string desc, string[] default_value, string[] allowed = [
+        ])
     {
         Arg a = new Arg();
         a.name = name;
         a.shorthand = shorthand;
         a.desc = desc;
         a.values_ = default_value;
+        a.allowed = allowed;
         a.type = Type.Multiple;
         return a;
     }
@@ -94,6 +99,10 @@ class Arg
         {
             throw new ArgMissingValueException(name);
         }
+        if (allowed.length > 0 && !allowed.canFind(values_[0]))
+        {
+            throw new ArgException(name, format("Value %s not allowed in %s", values_[0], allowed));
+        }
         return values_[0];
     }
 
@@ -120,6 +129,16 @@ class Arg
         if (type != Type.Multiple)
         {
             throw new ArgException(name, "Bad type");
+        }
+        if (allowed.length > 0)
+        {
+            foreach (v; values_)
+            {
+                if (!allowed.canFind(v))
+                {
+                    throw new ArgException(name, format("Value %s not allowed in %s", v, allowed));
+                }
+            }
         }
         return values_;
     }
