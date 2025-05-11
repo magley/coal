@@ -20,7 +20,7 @@ void do_build(Command cmd)
 	create_cmakelists(p);
 	writeln(
 		CTRACE ~ "    [2/3 coal build] " ~ CINFO ~ "Configuring CMake project " ~ CFOCUS ~ p.name ~ CINFO);
-	configure_cmakelists(p);
+	configure_cmakelists(p, cmd.args["release"].value);
 	writeln(CTRACE ~ "    [3/3 coal build] " ~ CINFO ~ "Building " ~ CFOCUS ~ p.name ~ CINFO);
 	build_project(p);
 	write(CCLEAR);
@@ -30,7 +30,8 @@ void do_run(Command cmd)
 {
 	if (!cmd.args["no-build"].is_set_flag)
 	{
-		do_build(cmd); // DANGEROUS: do_build expects a build-cmd, not a run-cmd.
+		// DANGEROUS: do_build expects a build-cmd, not a run-cmd.
+		do_build(cmd);
 	}
 
 	do_just_run(cmd.get_application_arguments());
@@ -65,9 +66,33 @@ void build_project(Project p)
 	}
 }
 
-void configure_cmakelists(Project p)
+void configure_cmakelists(Project p, string build_mode)
 {
 	string[] vars = [];
+
+	string get_build_mode_cmake_param(string build_mode)
+	{
+		switch (build_mode)
+		{
+		case "none":
+			return "None";
+		case "debug":
+			return "Debug";
+		case "release":
+			return "Release";
+		case "release-minsize":
+			return "RelMinSize";
+		case "release-debug":
+			return "RelDebug";
+		default:
+			{
+				string fallback = "None";
+				writeln(CWARN ~ "Unknown build mode " ~ CFOCUS ~ build_mode);
+				writeln(CINFO ~ "Defaulting to fallback " ~ CFOCUS ~ fallback ~ CCLEAR);
+				return fallback;
+			}
+		}
+	}
 
 	CoalFilePrivate coalfile_private;
 	coalfile_private.load(p.get_coalfile_private_fname());
@@ -77,7 +102,11 @@ void configure_cmakelists(Project p)
 	}
 
 	auto proc = spawnProcess([
-		"cmake", "-S", ".", "-B", buildPath(".", p.build_dir), "-G", p.generator
+		"cmake",
+		"-S", ".",
+		"-B", buildPath(".", p.build_dir),
+		"-G", p.generator,
+		"-DCMAKE_BUILD_TYPE=" ~ get_build_mode_cmake_param(build_mode)
 	] ~ vars);
 	int code = wait(proc);
 	if (code != 0)

@@ -38,11 +38,17 @@ void main(string[] args)
 		)
 		.subcommand(
 			new Command("build", "Build project")
+				.arg(Arg.single("release", "r", "Release type", "none", [
+						"none", "debug", "release", "minsize", "releasedebug"
+					]))
 				.set_callback(&do_build)
 		)
 		.subcommand(
 			new Command("run", "Build and run project")
 				.arg(Arg.flag("no-build", null, "Don't build project", false))
+				.arg(Arg.single("release", "r", "Release type", "none", [
+						"none", "debug", "release", "minsize", "releasedebug"
+					]))
 				.set_callback(&do_run)
 		)
 		.subcommand(
