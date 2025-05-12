@@ -172,6 +172,44 @@ class Command
                     w_name, flag,
                     arg.desc
                 );
+
+                // Show supported values.
+
+                if (arg.allowed.length > 0)
+                {
+                    string allowed_values = "Supported values: " ~ CTRACE ~ arg.allowed.join(", ");
+                    writefln("  " ~ "%-*s" ~ "%-*s" ~ CINFO ~ "%s" ~ CINFO,
+                        w_shorthand, "",
+                        w_name, "",
+                        allowed_values
+                    );
+                }
+
+                // Show default values.
+
+                const bool show_default_values = false;
+                if (show_default_values)
+                {
+                    string default_value = "";
+
+                    if (arg.type == Arg.Type.Flag)
+                    {
+                        default_value = "Default: " ~ CTRACE ~ to!(string)(arg.is_set_flag());
+                    }
+                    else if (arg.values_.length > 0)
+                    {
+                        default_value = "Default: " ~ CTRACE ~ arg.values_.join(", ");
+                    }
+
+                    if (default_value != "")
+                    {
+                        writefln("  " ~ "%-*s" ~ "%-*s" ~ CINFO ~ "%s" ~ CINFO,
+                            w_shorthand, "",
+                            w_name, "",
+                            default_value
+                        );
+                    }
+                }
             }
             writeln();
         }
