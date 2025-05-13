@@ -12,7 +12,7 @@ string[] ALLOWED_BUILD_MODES = [
 
 string[][string] DEFAULT_COMPILER_FLAGS_DEFAULT() => [
     "none": [],
-    "debug": ["O0", "g"],
+    "debug": ["O0", "g", "DDEBUG"],
     "release": ["O3", "DNDEBUG"],
     "minsize": ["Os", "DNDEBUG"],
     "releasedebug": ["O2", "g", "DNDEBUG"],
