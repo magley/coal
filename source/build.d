@@ -248,7 +248,7 @@ string generate_cmakelists_text(const ref CMakeLists_Manifest manifest, Project 
 				.replace("-", "_")
 				.replace(" ", "_")
 				.toUpper();
-			string[] build_mode_flags = ["g"]; // TODO
+			string[] build_mode_flags = p.cpp_flags[build_mode_flag];
 
 			build_mode_flags ~= "D" ~ build_mode_definition_macro_name;
 

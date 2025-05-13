@@ -9,3 +9,11 @@ string[] CPP_ALLOWED_VERSIONS_STR() => CPP_ALLOWED_VERSIONS.map!(
 string[] ALLOWED_BUILD_MODES = [
     "none", "debug", "release", "minsize", "releasedebug"
 ];
+
+string[][string] DEFAULT_COMPILER_FLAGS_DEFAULT() => [
+    "none": [],
+    "debug": ["O0", "g"],
+    "release": ["O3", "DNDEBUG"],
+    "minsize": ["Os", "DNDEBUG"],
+    "releasedebug": ["O2", "g", "DNDEBUG"],
+];
