@@ -5,3 +5,7 @@ import std.conv;
 static int[] CPP_ALLOWED_VERSIONS = [98, 11, 14, 17, 20, 23, 26];
 string[] CPP_ALLOWED_VERSIONS_STR() => CPP_ALLOWED_VERSIONS.map!(
     i => to!(string)(i)).array;
+
+string[] ALLOWED_BUILD_MODES = [
+    "none", "debug", "release", "minsize", "releasedebug"
+];
