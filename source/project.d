@@ -4,6 +4,7 @@ import std.array;
 import std.stdio;
 import std.path;
 import coalfile;
+import config;
 
 class Project
 {
@@ -15,6 +16,7 @@ class Project
 	string cmake_version_min = "";
 	string cmake_version_max = "";
 	string cpp_version = "";
+	string[][string] cpp_flags = DEFAULT_COMPILER_FLAGS_DEFAULT;
 
 	Project clone() const
 	{
@@ -40,6 +42,14 @@ class Project
 			libs_json ~= lib.to_json_coalfile();
 		}
 		j["libs"] = libs_json;
+
+		JSONValue cpp_flags_json;
+		foreach (k, v; cpp_flags)
+		{
+			cpp_flags_json[k] = v;
+		}
+		j["cpp_flags"] = cpp_flags_json;
+
 		return j;
 	}
 
@@ -58,6 +68,11 @@ class Project
 			Library lib;
 			lib.from_json_coalfile(lib_json);
 			libs ~= lib;
+		}
+
+		foreach (k, v; j["cpp_flags"].object)
+		{
+			cpp_flags[k] = v.array.map!(x => x.str).array;
 		}
 	}
 

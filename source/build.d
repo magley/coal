@@ -10,6 +10,8 @@ import std.process;
 import clyd.color;
 import clyd.command;
 import core.stdc.stdlib;
+import std.algorithm;
+import config;
 
 void do_build(Command cmd)
 {
@@ -69,30 +71,6 @@ void build_project(Project p)
 void configure_cmakelists(Project p, string build_mode)
 {
 	string[] vars = [];
-
-	string get_build_mode_cmake_param(string build_mode)
-	{
-		switch (build_mode)
-		{
-		case "none":
-			return "None";
-		case "debug":
-			return "Debug";
-		case "release":
-			return "Release";
-		case "release-minsize":
-			return "RelMinSize";
-		case "release-debug":
-			return "RelDebug";
-		default:
-			{
-				string fallback = "None";
-				writeln(CWARN ~ "Unknown build mode " ~ CFOCUS ~ build_mode);
-				writeln(CINFO ~ "Defaulting to fallback " ~ CFOCUS ~ fallback ~ CCLEAR);
-				return fallback;
-			}
-		}
-	}
 
 	CoalFilePrivate coalfile_private;
 	coalfile_private.load(p.get_coalfile_private_fname());
@@ -253,6 +231,36 @@ string generate_cmakelists_text(const ref CMakeLists_Manifest manifest, Project 
 	S.put(format("add_executable(%s ${SOURCES})\n", p.name));
 	S.put("\n");
 
+	// Compiler flags
+	{
+		string add_hyphen(string flag)
+		{
+			if (flag.startsWith("-"))
+				return flag;
+			return "-" ~ flag;
+		}
+
+		S.put(format("target_compile_options(%s PRIVATE\n", p.name));
+		foreach (build_mode_flag; ALLOWED_BUILD_MODES)
+		{
+			string build_mode_name = get_build_mode_cmake_param(build_mode_flag);
+			string build_mode_definition_macro_name = build_mode_flag
+				.replace("-", "_")
+				.replace(" ", "_")
+				.toUpper();
+			string[] build_mode_flags = p.cpp_flags[build_mode_flag];
+
+			build_mode_flags ~= "D" ~ build_mode_definition_macro_name;
+
+			S.put(format("\t$<$<CONFIG:%s>:%s>\n",
+					build_mode_name,
+					build_mode_flags.map!(add_hyphen).join(" ")
+			));
+		}
+		S.put(format(")\n"));
+		S.put("\n");
+	}
+
 	if (manifest.link_libs.length > 0)
 	{
 		S.put(format("target_link_libraries(%s\n", p.name));
@@ -281,4 +289,28 @@ string generate_cmakelists_text(const ref CMakeLists_Manifest manifest, Project 
 	}
 
 	return S.data.strip;
+}
+
+private string get_build_mode_cmake_param(string build_mode)
+{
+	switch (build_mode)
+	{
+	case "none":
+		return "None";
+	case "debug":
+		return "Debug";
+	case "release":
+		return "Release";
+	case "minsize":
+		return "RelMinSize";
+	case "releasedebug":
+		return "RelDebug";
+	default:
+		{
+			string fallback = "None";
+			writeln(CWARN ~ "Unknown build mode " ~ CFOCUS ~ build_mode);
+			writeln(CINFO ~ "Defaulting to fallback " ~ CFOCUS ~ fallback ~ CCLEAR);
+			return fallback;
+		}
+	}
 }
