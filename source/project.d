@@ -18,6 +18,7 @@ class Project
 	string cpp_version = "";
 	string[][string] build_specific_flags = DEFAULT_COMPILER_FLAGS_DEFAULT;
 	string[] flags = [];
+	string[] link_flags = [];
 
 	Project clone() const
 	{
@@ -37,6 +38,7 @@ class Project
 		j["cmake_version_max"] = cmake_version_max;
 		j["cpp_version"] = cpp_version;
 		j["flags"] = flags;
+		j["link_flags"] = link_flags;
 
 		JSONValue[] libs_json = [];
 		foreach (const Library lib; libs)
@@ -65,6 +67,7 @@ class Project
 		cmake_version_max = j["cmake_version_max"].str;
 		cpp_version = j["cpp_version"].str;
 		flags = j["flags"].array.map!(x => x.str).array;
+		link_flags = j["link_flags"].array.map!(x => x.str).array;
 
 		foreach (const lib_json; j["libs"].array)
 		{

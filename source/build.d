@@ -235,18 +235,28 @@ string generate_cmakelists_text(const ref CMakeLists_Manifest manifest, Project 
 
 	if (p.flags.length > 0)
 	{
-		string glo_flags = p.flags.map!(add_hyphen_to_flag).join(" ");
+		string compiler_flags = p.flags.map!(preprocess_compiler_flag).join(";");
 
 		S.put(format("target_compile_options(%s PRIVATE\n", p.name));
-		S.put(format("\t$<$<COMPILE_LANGUAGE:CXX>:%s>\n", glo_flags));
+		S.put(format("\t$<$<COMPILE_LANGUAGE:CXX>:%s>\n", compiler_flags));
 		S.put(format(")\n"));
 		S.put("\n");
+	}
 
+	// Link flags
+
+	if (p.link_flags.length > 0)
+	{
+		string link_flags = p.link_flags.map!(preprocess_link_flag).join(";");
+
+		S.put(format("target_link_options(%s PRIVATE\n", p.name));
+		S.put(format("\t%s\n", link_flags));
+		S.put(format(")\n"));
+		S.put("\n");
 	}
 
 	// Build-specific compiler flags
 	{
-
 		S.put(format("target_compile_options(%s PRIVATE\n", p.name));
 		foreach (build_mode_flag; ALLOWED_BUILD_MODES)
 		{
@@ -260,7 +270,7 @@ string generate_cmakelists_text(const ref CMakeLists_Manifest manifest, Project 
 			build_mode_flags ~= "D" ~ build_mode_definition_macro_name;
 			S.put(format("\t$<$<CONFIG:%s>:%s>\n",
 					build_mode_name,
-					build_mode_flags.map!(add_hyphen_to_flag).join(" ")
+					build_mode_flags.map!(preprocess_compiler_flag).join(";")
 			));
 		}
 		S.put(format(")\n"));
@@ -324,9 +334,22 @@ private string get_build_mode_cmake_param(string build_mode)
 	}
 }
 
-private string add_hyphen_to_flag(string flag)
+private string preprocess_compiler_flag(string flag)
 {
 	if (flag.startsWith("-"))
 		return flag;
 	return "-" ~ flag;
+}
+
+private string preprocess_link_flag(string flag)
+{
+	if (flag.startsWith("-l"))
+	{
+		return flag;
+	}
+	if (flag.startsWith("l"))
+	{
+		return "-" ~ flag;
+	}
+	return "-l" ~ flag;
 }
