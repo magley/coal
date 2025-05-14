@@ -232,13 +232,20 @@ string generate_cmakelists_text(const ref CMakeLists_Manifest manifest, Project 
 	S.put("\n");
 
 	// Compiler flags
+
+	if (p.flags.length > 0)
 	{
-		string add_hyphen(string flag)
-		{
-			if (flag.startsWith("-"))
-				return flag;
-			return "-" ~ flag;
-		}
+		string glo_flags = p.flags.map!(add_hyphen_to_flag).join(" ");
+
+		S.put(format("target_compile_options(%s PRIVATE\n", p.name));
+		S.put(format("\t$<$<COMPILE_LANGUAGE:CXX>:%s>\n", glo_flags));
+		S.put(format(")\n"));
+		S.put("\n");
+
+	}
+
+	// Build-specific compiler flags
+	{
 
 		S.put(format("target_compile_options(%s PRIVATE\n", p.name));
 		foreach (build_mode_flag; ALLOWED_BUILD_MODES)
@@ -248,13 +255,12 @@ string generate_cmakelists_text(const ref CMakeLists_Manifest manifest, Project 
 				.replace("-", "_")
 				.replace(" ", "_")
 				.toUpper();
-			string[] build_mode_flags = p.cpp_flags[build_mode_flag];
+			string[] build_mode_flags = p.build_specific_flags[build_mode_flag];
 
 			build_mode_flags ~= "D" ~ build_mode_definition_macro_name;
-
 			S.put(format("\t$<$<CONFIG:%s>:%s>\n",
 					build_mode_name,
-					build_mode_flags.map!(add_hyphen).join(" ")
+					build_mode_flags.map!(add_hyphen_to_flag).join(" ")
 			));
 		}
 		S.put(format(")\n"));
@@ -275,7 +281,8 @@ string generate_cmakelists_text(const ref CMakeLists_Manifest manifest, Project 
 	if (manifest.copy_dlls.length > 0)
 	{
 		S.put(format("if (WIN32)\n"));
-		S.put(format("    add_custom_command(TARGET %s POST_BUILD\n", p.name));
+		S.put(format(
+				"    add_custom_command(TARGET %s POST_BUILD\n", p.name));
 		foreach (dll; manifest.copy_dlls)
 		{
 			S.put(format(
@@ -308,9 +315,18 @@ private string get_build_mode_cmake_param(string build_mode)
 	default:
 		{
 			string fallback = "None";
-			writeln(CWARN ~ "Unknown build mode " ~ CFOCUS ~ build_mode);
-			writeln(CINFO ~ "Defaulting to fallback " ~ CFOCUS ~ fallback ~ CCLEAR);
+			writeln(
+				CWARN ~ "Unknown build mode " ~ CFOCUS ~ build_mode);
+			writeln(
+				CINFO ~ "Defaulting to fallback " ~ CFOCUS ~ fallback ~ CCLEAR);
 			return fallback;
 		}
 	}
+}
+
+private string add_hyphen_to_flag(string flag)
+{
+	if (flag.startsWith("-"))
+		return flag;
+	return "-" ~ flag;
 }
