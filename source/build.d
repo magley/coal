@@ -12,20 +12,62 @@ import clyd.command;
 import core.stdc.stdlib;
 import std.algorithm;
 import config;
+import std.datetime.stopwatch;
+
+private void print_time(string project_name, ref StopWatch sw_full, ref StopWatch sw_cmake)
+{
+	string get_time_string(ref StopWatch stopwatch)
+	{
+		string build_time = to!(string)(stopwatch.peek());
+
+		// We don't need sub-ms precision.
+
+		long i = build_time.indexOf("ms");
+		if (i >= 0)
+		{
+			build_time = build_time[0 .. (i + "ms".length)];
+		}
+
+		return build_time;
+	}
+
+	writeln(CTRACE ~ "    [    coal build] "
+			~ CINFO ~ "Finished building "
+			~ CFOCUS ~ project_name
+			~ CINFO ~ " in "
+			~ CTRACE ~ get_time_string(
+				sw_full) ~ "\n"
+			~ CINFO ~ "                     CMake build took "
+			~ CTRACE ~ get_time_string(sw_cmake)
+			~ CCLEAR);
+	write(CCLEAR);
+}
 
 void do_build(Command cmd)
 {
 	Project p = load();
 
-	writeln(
-		CTRACE ~ "    [1/3 coal build] " ~ CINFO ~ "Generating CMakeLists.txt for " ~ CFOCUS ~ p.name ~ CINFO);
+	auto sw = StopWatch(AutoStart.no);
+	auto sw_cmake = StopWatch(AutoStart.no);
+
+	sw.start();
+
+	writeln(CTRACE ~ "    [1/3 coal build] " ~ CINFO ~ "Generating CMakeLists.txt for " ~ CFOCUS ~ p.name ~ CINFO);
 	create_cmakelists(p);
+
 	writeln(
 		CTRACE ~ "    [2/3 coal build] " ~ CINFO ~ "Configuring CMake project " ~ CFOCUS ~ p.name ~ CINFO);
 	configure_cmakelists(p, cmd.args["release"].value);
+
+	sw_cmake.start();
+
 	writeln(CTRACE ~ "    [3/3 coal build] " ~ CINFO ~ "Building " ~ CFOCUS ~ p.name ~ CINFO);
 	build_project(p);
-	write(CCLEAR);
+
+	sw_cmake.stop();
+	sw.stop();
+
+	print_time(p.name, sw, sw_cmake);
 }
 
 void do_run(Command cmd)
@@ -343,13 +385,7 @@ private string preprocess_compiler_flag(string flag)
 
 private string preprocess_link_flag(string flag)
 {
-	if (flag.startsWith("-l"))
-	{
+	if (flag.startsWith("-"))
 		return flag;
-	}
-	if (flag.startsWith("l"))
-	{
-		return "-" ~ flag;
-	}
-	return "-l" ~ flag;
+	return "-" ~ flag;
 }
