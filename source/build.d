@@ -343,13 +343,7 @@ private string preprocess_compiler_flag(string flag)
 
 private string preprocess_link_flag(string flag)
 {
-	if (flag.startsWith("-l"))
-	{
+	if (flag.startsWith("-"))
 		return flag;
-	}
-	if (flag.startsWith("l"))
-	{
-		return "-" ~ flag;
-	}
-	return "-l" ~ flag;
+	return "-" ~ flag;
 }
