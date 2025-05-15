@@ -48,6 +48,7 @@ Project load(string directory = ".")
 {
 	ensure_coalfile_exists(directory);
 	Project p = new Project();
+	bool changes_made_while_loading = false;
 
 	// Load coalfile.
 	{
@@ -93,6 +94,7 @@ Project load(string directory = ".")
 						.path);
 				string new_path = input_dir_non_empty(format("Enter path for library %s", lib.name));
 				lib.path = new_path;
+				changes_made_while_loading = true;
 			}
 		}
 	}
@@ -131,6 +133,12 @@ Project load(string directory = ".")
 			writefln(CERR ~ "Must be any of " ~ CINFO ~ to!(string)(CPP_ALLOWED_VERSIONS) ~ CCLEAR);
 			exit(1);
 		}
+	}
+
+	// Save project, in case some changes were made. 
+	if (changes_made_while_loading)
+	{
+		save(p, directory);
 	}
 
 	return p;
