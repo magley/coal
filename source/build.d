@@ -202,6 +202,11 @@ CMakeLists_Manifest build_cmakelists_manifest(Project p)
 		{
 			result.copy_dlls ~= buildPath(lib_var, dll_file);
 		}
+
+		foreach (src_file; lib.get_source_files())
+		{
+			result.source_files ~= buildPath(lib.get_dir_var(), src_file);
+		}
 	}
 
 	return result;

@@ -3,8 +3,10 @@ import std.algorithm;
 import std.array;
 import std.stdio;
 import std.path;
+import std.file;
 import coalfile;
 import config;
+import clyd.color;
 
 class Project
 {
@@ -130,6 +132,7 @@ struct Library
 	string[] lib_dirs = [];
 	string[] dll_dirs = [];
 	string[] link_libs = [];
+	string[] sources = [];
 
 	// Absolute path to the library directory. This is kept in the private
 	// coalfile and is loaded by the Project. The default value is `null`. That
@@ -147,6 +150,7 @@ struct Library
 		j["lib_dirs"] = lib_dirs;
 		j["dll_dirs"] = dll_dirs;
 		j["link_libs"] = link_libs;
+		j["sources"] = sources;
 		return j;
 	}
 
@@ -157,6 +161,7 @@ struct Library
 		lib_dirs = j["lib_dirs"].array.map!(x => x.str).array;
 		dll_dirs = j["dll_dirs"].array.map!(x => x.str).array;
 		link_libs = j["link_libs"].array.map!(x => x.str).array;
+		sources = j["sources"].array.map!(x => x.str).array;
 		path = null;
 	}
 
@@ -168,5 +173,46 @@ struct Library
 	string get_dir_var() const
 	{
 		return "${" ~ get_dir_var_name() ~ "}";
+	}
+
+	string[] get_source_files() const
+	{
+		string[] res = [];
+
+		foreach (src; sources)
+		{
+			string src_full_path = buildPath(path, src);
+
+			if (!exists(src_full_path))
+			{
+				writeln(CWARN ~ "Unknown " ~ CFOCUS ~ src ~ CWARN ~ " in library " ~ CFOCUS ~ name ~ CCLEAR);
+				continue;
+			}
+
+			string[] src_expanded = [];
+
+			if (isDir(src_full_path))
+			{
+				alias dir = src_full_path;
+				const string source_file_ext = ".cpp";
+
+				foreach (entry; dirEntries(dir, SpanMode.depth))
+				{
+					if (entry.isFile && entry.name.extension == source_file_ext)
+					{
+						string entry_relative = relativePath(entry.name, path);
+						src_expanded ~= entry_relative;
+					}
+				}
+			}
+			else
+			{
+				src_expanded ~= src;
+			}
+
+			res ~= src_expanded;
+		}
+
+		return res;
 	}
 }

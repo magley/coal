@@ -14,6 +14,7 @@ void do_add(Command cmd)
 	string[] lib_dirs = cmd.args["lib"].values;
 	string[] link_libs = cmd.args["link"].values;
 	string[] dll_dirs = cmd.args["dll"].values;
+	string[] sources = cmd.args["source"].values;
 
 	Project p = load();
 
@@ -31,6 +32,7 @@ void do_add(Command cmd)
 	lib.lib_dirs = lib_dirs;
 	lib.link_libs = link_libs;
 	lib.dll_dirs = dll_dirs;
+	lib.sources = sources;
 
 	p.libs ~= lib;
 	save(p);
