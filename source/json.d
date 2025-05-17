@@ -1,45 +1,141 @@
 import std.json;
 import std.array;
 import std.algorithm;
+import core.stdc.stdlib;
+import clyd.color;
+import std.stdio;
 
-string get_string(ref JSONValue j, string key, string fallback)
+struct JsonSafe
 {
-    if (key in j)
+    JSONValue j;
+    string key;
+
+    JsonSafe require_value()
     {
-        return j[key].str;
+        if (key !in j)
+        {
+            writeln(CERR ~ "Missing required property " ~ CFOCUS ~ key ~ CERR ~ " in JSON " ~ CCLEAR);
+            exit(1);
+        }
+        return this;
     }
-    return fallback;
-}
 
-string[] get_strings(ref JSONValue j, string key, string[] fallback)
-{
-    if (key in j)
+    JsonSafe require_str()
     {
-        return j[key].array.map!(x => x.str).array;
+        require_value();
+        if (j[key].type != JSONType.STRING)
+        {
+            writeln(CERR ~ "Property " ~ CFOCUS ~ key ~ CERR ~ " must be string " ~ CCLEAR);
+            exit(1);
+        }
+        return this;
     }
-    return fallback;
-}
 
-JSONValue[] get_arr(ref JSONValue j, string key)
-{
-    if (key in j)
+    JsonSafe require_strarr()
     {
-        if (j[key].type == JSONType.ARRAY)
+        require_value();
+        if (j[key].type != JSONType.ARRAY)
+        {
+            writeln(CERR ~ "Property " ~ CFOCUS ~ key ~ CERR ~ " must be array " ~ CCLEAR);
+            exit(1);
+        }
+
+        foreach (elem; j[key].array)
+        {
+            if (elem.type != JSONType.STRING)
+            {
+                writeln(
+                    CERR ~ "Elements of property " ~ CFOCUS ~ key ~ CERR ~ " must be strings " ~ CCLEAR);
+                exit(1);
+            }
+        }
+        return this;
+    }
+
+    JsonSafe require_arr()
+    {
+        require_value();
+        if (j[key].type != JSONType.ARRAY)
+        {
+            writeln(CERR ~ "Property " ~ CFOCUS ~ key ~ CERR ~ " must be array " ~ CCLEAR);
+            exit(1);
+        }
+        return this;
+    }
+
+    JsonSafe require_obj()
+    {
+        require_value();
+        if (j[key].type != JSONType.OBJECT)
+        {
+            writeln(CERR ~ "Property " ~ CFOCUS ~ key ~ CERR ~ " must be object " ~ CCLEAR);
+            exit(1);
+        }
+        return this;
+    }
+
+    string str_or(string fallback)
+    {
+        if (key in j && j[key].type == JSONType.STRING)
+        {
+            return j[key].str;
+        }
+        return fallback;
+    }
+
+    string[] strarr_or(string[] fallback)
+    {
+        if (key in j && j[key].type == JSONType.ARRAY)
+        {
+            return j[key].array.map!(x => x.str).array;
+        }
+        return fallback;
+    }
+
+    JSONValue[] arr_or(JSONValue[] fallback)
+    {
+        if (key in j && j[key].type == JSONType.ARRAY)
         {
             return j[key].array;
         }
+        return fallback;
     }
-    return [];
-}
 
-JSONValue[string] get_obj(ref JSONValue j, string key)
-{
-    if (key in j)
+    JSONValue[string] obj_or(JSONValue[string] fallback)
     {
-        if (j[key].type == JSONType.OBJECT)
+        if (key in j && j[key].type == JSONType.OBJECT)
         {
             return j[key].object;
         }
+        return fallback;
     }
-    return null;
+
+    string str()
+    {
+        require_str();
+        return j[key].str;
+    }
+
+    string[] strarr()
+    {
+        require_strarr();
+        return j[key].array.map!(x => x.str).array;
+    }
+
+    JSONValue[] arr()
+    {
+        require_arr();
+        return j[key].array;
+    }
+
+    JSONValue[string] obj()
+    {
+        require_obj();
+        return j[key].object;
+    }
+}
+
+JsonSafe safe(ref JSONValue j, string key)
+{
+    return JsonSafe(j, key);
 }

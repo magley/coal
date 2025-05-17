@@ -62,25 +62,24 @@ class Project
 
 	void from_json_coalfile(JSONValue j)
 	{
-		name = j["name"].str;
-		source_dirs = j["source_dirs"].array.map!(x => x.str).array;
-		build_dir = j["build_dir"].str;
-		generator = j["generator"].str;
+		name = j.safe("name").str;
+		source_dirs = j.safe("source_dirs").strarr;
+		build_dir = j.safe("build_dir").str;
+		generator = j.safe("generator").str;
+		cmake_version_min = j.safe("cmake_version_min").str_or("3.15");
+		cmake_version_max = j.safe("cmake_version_max").str_or("4.0");
+		cpp_version = j.safe("cpp_version").str_or("14");
+		flags = j.safe("flags").strarr_or([]);
+		link_flags = j.safe("link_flags").strarr_or([]);
 
-		cmake_version_min = j.get_string("cmake_version_min", "3.15");
-		cmake_version_max = j.get_string("cmake_version_max", "4.0");
-		cpp_version = j.get_string("cpp_version", "14");
-		flags = j.get_strings("flags", []);
-		link_flags = j.get_strings("link_flags", []);
-
-		foreach (const lib_json; j.get_arr("libs"))
+		foreach (const lib_json; j.safe("libs").arr_or([]))
 		{
 			Library lib;
 			lib.from_json_coalfile(lib_json);
 			libs ~= lib;
 		}
 
-		foreach (k, v; j.get_obj("build_specific_flags"))
+		foreach (k, v; j.safe("build_specific_flags").obj_or(null))
 		{
 			build_specific_flags[k] = v.array.map!(x => x.str).array;
 		}
@@ -158,13 +157,12 @@ struct Library
 
 	void from_json_coalfile(JSONValue j)
 	{
-		name = j["name"].str;
-
-		include_dirs = j.get_strings("include_dirs", []);
-		lib_dirs = j.get_strings("lib_dirs", []);
-		dll_dirs = j.get_strings("dll_dirs", []);
-		link_libs = j.get_strings("link_libs", []);
-		sources = j.get_strings("sources", []);
+		name = j.safe("name").str;
+		include_dirs = j.safe("include_dirs").strarr_or([]);
+		lib_dirs = j.safe("lib_dirs").strarr_or([]);
+		dll_dirs = j.safe("dll_dirs").strarr_or([]);
+		link_libs = j.safe("link_libs").strarr_or([]);
+		sources = j.safe("sources").strarr_or([]);
 
 		path = null;
 	}
