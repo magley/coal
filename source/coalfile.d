@@ -176,6 +176,14 @@ struct CoalFilePrivate
 
 	void load(string fname)
 	{
+		if (!exists(fname))
+		{
+			writeln(CERR ~ "Could not find coalfile.private at " ~ CFOCUS ~ fname ~ CCLEAR);
+			writeln(CINFO ~ "Does the directory exist?" ~ CCLEAR);
+
+			exit(1);
+		}
+
 		string json_string = readText(fname);
 		JSONValue j = parseJSON(json_string);
 

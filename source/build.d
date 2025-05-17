@@ -169,6 +169,12 @@ CMakeLists_Manifest build_cmakelists_manifest(Project p)
 
 		string dir_rel = buildPath(".", dir);
 
+		if (!exists(dir_rel))
+		{
+			writeln(CERR ~ "Could not find source dir " ~ CFOCUS ~ dir ~ CCLEAR);
+			exit(1);
+		}
+
 		foreach (entry; dirEntries(dir_rel, SpanMode.depth))
 		{
 			if (entry.isFile && entry.name.extension == source_file_ext)
