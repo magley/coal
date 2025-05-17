@@ -7,6 +7,7 @@ import std.file;
 import coalfile;
 import config;
 import clyd.color;
+import json;
 
 class Project
 {
@@ -65,20 +66,21 @@ class Project
 		source_dirs = j["source_dirs"].array.map!(x => x.str).array;
 		build_dir = j["build_dir"].str;
 		generator = j["generator"].str;
-		cmake_version_min = j["cmake_version_min"].str;
-		cmake_version_max = j["cmake_version_max"].str;
-		cpp_version = j["cpp_version"].str;
-		flags = j["flags"].array.map!(x => x.str).array;
-		link_flags = j["link_flags"].array.map!(x => x.str).array;
 
-		foreach (const lib_json; j["libs"].array)
+		cmake_version_min = j.get_string("cmake_version_min", "3.15");
+		cmake_version_max = j.get_string("cmake_version_max", "4.0");
+		cpp_version = j.get_string("cpp_version", "14");
+		flags = j.get_strings("flags", []);
+		link_flags = j.get_strings("link_flags", []);
+
+		foreach (const lib_json; j.get_arr("libs"))
 		{
 			Library lib;
 			lib.from_json_coalfile(lib_json);
 			libs ~= lib;
 		}
 
-		foreach (k, v; j["build_specific_flags"].object)
+		foreach (k, v; j.get_obj("build_specific_flags"))
 		{
 			build_specific_flags[k] = v.array.map!(x => x.str).array;
 		}
@@ -154,14 +156,16 @@ struct Library
 		return j;
 	}
 
-	void from_json_coalfile(const JSONValue j)
+	void from_json_coalfile(JSONValue j)
 	{
 		name = j["name"].str;
-		include_dirs = j["include_dirs"].array.map!(x => x.str).array;
-		lib_dirs = j["lib_dirs"].array.map!(x => x.str).array;
-		dll_dirs = j["dll_dirs"].array.map!(x => x.str).array;
-		link_libs = j["link_libs"].array.map!(x => x.str).array;
-		sources = j["sources"].array.map!(x => x.str).array;
+
+		include_dirs = j.get_strings("include_dirs", []);
+		lib_dirs = j.get_strings("lib_dirs", []);
+		dll_dirs = j.get_strings("dll_dirs", []);
+		link_libs = j.get_strings("link_libs", []);
+		sources = j.get_strings("sources", []);
+
 		path = null;
 	}
 
