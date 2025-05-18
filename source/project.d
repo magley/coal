@@ -16,9 +16,9 @@ class Project
 	string build_dir = "";
 	string generator = "";
 	Library[] libs = [];
-	string cmake_version_min = "";
-	string cmake_version_max = "";
-	string cpp_version = "";
+	string cmake_version_min = "3.15";
+	string cmake_version_max = "4.0";
+	string cpp_version = "14";
 	string[][string] build_specific_flags = DEFAULT_COMPILER_FLAGS_DEFAULT;
 	string[] flags = [];
 	string[] link_flags = [];
@@ -62,15 +62,16 @@ class Project
 
 	void from_json_coalfile(JSONValue j)
 	{
-		name = j.safe("name").str;
-		source_dirs = j.safe("source_dirs").strarr;
-		build_dir = j.safe("build_dir").str;
-		generator = j.safe("generator").str;
-		cmake_version_min = j.safe("cmake_version_min").str_or("3.15");
-		cmake_version_max = j.safe("cmake_version_max").str_or("4.0");
-		cpp_version = j.safe("cpp_version").str_or("14");
-		flags = j.safe("flags").strarr_or([]);
-		link_flags = j.safe("link_flags").strarr_or([]);
+		mixin(get_json_field!("name", "str", false));
+		mixin(get_json_field!("source_dirs", "strarr", false));
+		mixin(get_json_field!("build_dir", "str", false));
+		mixin(get_json_field!("generator", "str", false));
+
+		mixin(get_json_field!("cmake_version_min", "str", true));
+		mixin(get_json_field!("cmake_version_max", "str", true));
+		mixin(get_json_field!("cpp_version", "str", true));
+		mixin(get_json_field!("flags", "strarr", true));
+		mixin(get_json_field!("link_flags", "strarr", true));
 
 		foreach (const lib_json; j.safe("libs").arr_or([]))
 		{
@@ -157,12 +158,12 @@ struct Library
 
 	void from_json_coalfile(JSONValue j)
 	{
-		name = j.safe("name").str;
-		include_dirs = j.safe("include_dirs").strarr_or([]);
-		lib_dirs = j.safe("lib_dirs").strarr_or([]);
-		dll_dirs = j.safe("dll_dirs").strarr_or([]);
-		link_libs = j.safe("link_libs").strarr_or([]);
-		sources = j.safe("sources").strarr_or([]);
+		mixin(get_json_field!("name", "str", false));
+		mixin(get_json_field!("include_dirs", "strarr", true));
+		mixin(get_json_field!("lib_dirs", "strarr", true));
+		mixin(get_json_field!("dll_dirs", "strarr", true));
+		mixin(get_json_field!("link_libs", "strarr", true));
+		mixin(get_json_field!("sources", "strarr", true));
 
 		path = null;
 	}
@@ -187,7 +188,8 @@ struct Library
 
 			if (!exists(src_full_path))
 			{
-				writeln(CWARN ~ "Unknown " ~ CFOCUS ~ src ~ CWARN ~ " in library " ~ CFOCUS ~ name ~ CCLEAR);
+				writeln(
+					CWARN ~ "Unknown " ~ CFOCUS ~ src ~ CWARN ~ " in library " ~ CFOCUS ~ name ~ CCLEAR);
 				continue;
 			}
 
@@ -217,4 +219,32 @@ struct Library
 
 		return res;
 	}
+}
+
+/// Simplify safely getting a value from `j`. Used in mixins, to reduce
+/// the number of times a same identifier is specified.
+///
+/// Params:
+/// - **name** The name of the field, its json value must be the same.
+/// - **conv_func** JsonSafe conversion method stem, for example `str`
+///   or `strarr` (Without the `_or`).
+/// - **offer_default** When `false`, if the value is missing from json
+///   that counts as an error. When `true`, if the value is missing from
+///   json then it will use the default value for the `name` field.
+///   which is defined by the underlying class (so, it's not the default
+///   for _all_ strings).
+///
+/// Returns: A mixin declaration, like: `name = j.safe("name").str;` or
+/// `name = j.safe("name").str_orr(name);`
+private string get_json_field(string name, string conv_func, bool offer_default)()
+{
+	string s = name ~ " = j.safe(\"" ~ name ~ "\")." ~ conv_func;
+
+	if (offer_default)
+	{
+		s ~= "_or(" ~ name ~ ")";
+	}
+	s ~= ";";
+
+	return s;
 }
