@@ -4,12 +4,11 @@
 
 Coal is a CLI tool that simplifies creating and building C++ projects using CMake.
 
-<video width="700" height="300" controls>
-  <source src="./docs/coal_01.mp4" type="video/mp4">
-</video>
+
+https://github.com/user-attachments/assets/02f72912-8bde-4a0a-8194-2b04d65082b0
+
 
 ## Usage
-
 Create a new project:
 
 ```sh
