@@ -11,6 +11,7 @@ import clyd.color;
 import std.conv;
 import std.array;
 import config;
+import json;
 
 void save(Project p, string directory = ".")
 {
@@ -175,10 +176,18 @@ struct CoalFilePrivate
 
 	void load(string fname)
 	{
+		if (!exists(fname))
+		{
+			writeln(CERR ~ "Could not find coalfile.private at " ~ CFOCUS ~ fname ~ CCLEAR);
+			writeln(CINFO ~ "Does the directory exist?" ~ CCLEAR);
+
+			exit(1);
+		}
+
 		string json_string = readText(fname);
 		JSONValue j = parseJSON(json_string);
 
-		foreach (key, val; j["lib_paths"].object)
+		foreach (key, val; j.safe("lib_paths").obj_or(null))
 		{
 			lib_paths[key] = val.str;
 		}

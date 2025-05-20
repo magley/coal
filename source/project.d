@@ -7,6 +7,7 @@ import std.file;
 import coalfile;
 import config;
 import clyd.color;
+import json;
 
 class Project
 {
@@ -15,9 +16,9 @@ class Project
 	string build_dir = "";
 	string generator = "";
 	Library[] libs = [];
-	string cmake_version_min = "";
-	string cmake_version_max = "";
-	string cpp_version = "";
+	string cmake_version_min = "3.15";
+	string cmake_version_max = "4.0";
+	string cpp_version = "14";
 	string[][string] build_specific_flags = DEFAULT_COMPILER_FLAGS_DEFAULT;
 	string[] flags = [];
 	string[] link_flags = [];
@@ -61,24 +62,25 @@ class Project
 
 	void from_json_coalfile(JSONValue j)
 	{
-		name = j["name"].str;
-		source_dirs = j["source_dirs"].array.map!(x => x.str).array;
-		build_dir = j["build_dir"].str;
-		generator = j["generator"].str;
-		cmake_version_min = j["cmake_version_min"].str;
-		cmake_version_max = j["cmake_version_max"].str;
-		cpp_version = j["cpp_version"].str;
-		flags = j["flags"].array.map!(x => x.str).array;
-		link_flags = j["link_flags"].array.map!(x => x.str).array;
+		mixin(get_json_field!("name", "str", false));
+		mixin(get_json_field!("source_dirs", "strarr", false));
+		mixin(get_json_field!("build_dir", "str", false));
+		mixin(get_json_field!("generator", "str", false));
 
-		foreach (const lib_json; j["libs"].array)
+		mixin(get_json_field!("cmake_version_min", "str", true));
+		mixin(get_json_field!("cmake_version_max", "str", true));
+		mixin(get_json_field!("cpp_version", "str", true));
+		mixin(get_json_field!("flags", "strarr", true));
+		mixin(get_json_field!("link_flags", "strarr", true));
+
+		foreach (const lib_json; j.safe("libs").arr_or([]))
 		{
 			Library lib;
 			lib.from_json_coalfile(lib_json);
 			libs ~= lib;
 		}
 
-		foreach (k, v; j["build_specific_flags"].object)
+		foreach (k, v; j.safe("build_specific_flags").obj_or(null))
 		{
 			build_specific_flags[k] = v.array.map!(x => x.str).array;
 		}
@@ -154,14 +156,15 @@ struct Library
 		return j;
 	}
 
-	void from_json_coalfile(const JSONValue j)
+	void from_json_coalfile(JSONValue j)
 	{
-		name = j["name"].str;
-		include_dirs = j["include_dirs"].array.map!(x => x.str).array;
-		lib_dirs = j["lib_dirs"].array.map!(x => x.str).array;
-		dll_dirs = j["dll_dirs"].array.map!(x => x.str).array;
-		link_libs = j["link_libs"].array.map!(x => x.str).array;
-		sources = j["sources"].array.map!(x => x.str).array;
+		mixin(get_json_field!("name", "str", false));
+		mixin(get_json_field!("include_dirs", "strarr", true));
+		mixin(get_json_field!("lib_dirs", "strarr", true));
+		mixin(get_json_field!("dll_dirs", "strarr", true));
+		mixin(get_json_field!("link_libs", "strarr", true));
+		mixin(get_json_field!("sources", "strarr", true));
+
 		path = null;
 	}
 
@@ -185,7 +188,8 @@ struct Library
 
 			if (!exists(src_full_path))
 			{
-				writeln(CWARN ~ "Unknown " ~ CFOCUS ~ src ~ CWARN ~ " in library " ~ CFOCUS ~ name ~ CCLEAR);
+				writeln(
+					CWARN ~ "Unknown " ~ CFOCUS ~ src ~ CWARN ~ " in library " ~ CFOCUS ~ name ~ CCLEAR);
 				continue;
 			}
 
@@ -215,4 +219,32 @@ struct Library
 
 		return res;
 	}
+}
+
+/// Simplify safely getting a value from `j`. Used in mixins, to reduce
+/// the number of times a same identifier is specified.
+///
+/// Params:
+/// - **name** The name of the field, its json value must be the same.
+/// - **conv_func** JsonSafe conversion method stem, for example `str`
+///   or `strarr` (Without the `_or`).
+/// - **offer_default** When `false`, if the value is missing from json
+///   that counts as an error. When `true`, if the value is missing from
+///   json then it will use the default value for the `name` field.
+///   which is defined by the underlying class (so, it's not the default
+///   for _all_ strings).
+///
+/// Returns: A mixin declaration, like: `name = j.safe("name").str;` or
+/// `name = j.safe("name").str_orr(name);`
+private string get_json_field(string name, string conv_func, bool offer_default)()
+{
+	string s = name ~ " = j.safe(\"" ~ name ~ "\")." ~ conv_func;
+
+	if (offer_default)
+	{
+		s ~= "_or(" ~ name ~ ")";
+	}
+	s ~= ";";
+
+	return s;
 }

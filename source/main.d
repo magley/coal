@@ -9,7 +9,7 @@ import templates;
 import clean;
 import config;
 
-const VERSION = "0.5";
+const VERSION = "0.6";
 
 void main(string[] args)
 {
