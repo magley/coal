@@ -18,6 +18,7 @@ class Command
 
     string name;
     string desc;
+    string longer_desc;
     Command[string] subcmd;
     Command supercmd;
     Arg[string] args;
@@ -27,6 +28,7 @@ class Command
     {
         this.name = name;
         this.desc = desc;
+        this.longer_desc = "";
         this.subcmd = null;
         this.supercmd = null;
         this.callback = null;
@@ -67,6 +69,12 @@ class Command
     Command set_callback(CommandCallback cb)
     {
         this.callback = cb;
+        return this;
+    }
+
+    Command set_longer_desc(string d)
+    {
+        this.longer_desc = d;
         return this;
     }
 
@@ -147,6 +155,12 @@ class Command
         writeln();
         writeln(CINFO ~ desc);
         writeln();
+
+        if (longer_desc != "")
+        {
+            writeln(CCLEAR ~ longer_desc);
+            writeln();
+        }
 
         if (args.length > 0)
         {

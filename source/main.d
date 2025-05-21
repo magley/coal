@@ -1,6 +1,7 @@
 import clyd.command;
 import clyd.handler;
 import clyd.arg;
+import clyd.color;
 
 import init;
 import add;
@@ -23,7 +24,22 @@ void main(string[] args)
 				.arg(Arg.single("cmake-ver-min", null, "Minimum supported CMake min version", "3.15"))
 				.arg(Arg.single("cmake-ver-max", null, "Maximum supported CMake min version", "4.0"))
 				.arg(Arg.single("cpp", null, "C++ version standard", "14", CPP_ALLOWED_VERSIONS_STR))
-
+				.set_longer_desc(
+					"This command will create a new coal project.\n\n" ~
+					"If you're initializing in an empty folder, coal\n" ~
+					"will generate a basic Hello World project to get\n" ~
+					"you started.\n\n" ~
+					"If you're initializing in a directory which has\n" ~
+					"a C++ project, it won't create additional files.\n" ~
+					"Coal assumes a C++ project exists in the directory\n" ~
+					"if it contains a folder with the same name as the\n" ~
+					CFOCUS ~ "src" ~ CCLEAR ~ " parameter provded when executing this command.\n\n" ~
+					"This command does not generate binaries or CMake files.\n\n" ~
+					"Example:\n" ~
+					CTRACE ~ "\tcoal init --name \"my_new_project\" --src \"source\"\n" ~ CCLEAR ~
+					"\tThis will create a project " ~ CFOCUS ~ "my_new_project" ~ CCLEAR ~ "\n" ~
+					"\twhose source files will be located in " ~ CFOCUS ~ "source/" ~ CCLEAR
+				)
 				.set_callback((Command cmd) { do_init_new(cmd); })
 		)
 		.subcommand(
