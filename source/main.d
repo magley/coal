@@ -10,7 +10,7 @@ import templates;
 import clean;
 import config;
 
-const VERSION = "0.6";
+const VERSION = "0.7-beta";
 
 void main(string[] args)
 {
@@ -51,6 +51,28 @@ void main(string[] args)
 				.arg(Arg.multiple("lib", "l", "Library directories", []))
 				.arg(Arg.multiple("link", "L", "Link directives", []))
 				.arg(Arg.multiple("dll", null, "DLL files to copy", []))
+				.set_longer_desc(
+					"This command adds a local dependency to the project.\n\n" ~
+					"If you have a compatible C++ library on your computer,\n" ~
+					"you may add it as a soft link to the project.\n\n" ~
+					"Being a soft link, the library files are not copied\n" ~
+					"to the project folder. Furthermore, removing the\n" ~
+					"dependency files will cause issues when building\n" ~
+					"the project.\n\n" ~
+					"A dependency requires the full path to its files,\n" ~
+					"which is used as a root path when computing any\n" ~
+					"other directories that are added into the project.\n" ~
+					"What that means is that parameters like " ~ CFOCUS ~ "include\n"
+					~ CCLEAR ~ "must be relative to the path of the dependency.\n\n" ~
+					"The full path to the dependency is stored in the\n" ~
+					"coalfile.private file inside the build directory.\n\n" ~
+					"Example:\n" ~
+					CTRACE ~ "\tcoal add --name \"lib\" --path \"D:/libs/some_lib/\" --include \"Include/\"\n" ~ CCLEAR ~
+					"\tThis will add a library " ~ CFOCUS ~ "lib" ~ CCLEAR ~ "\n" ~
+					"\tlocated in " ~ CFOCUS ~ "D:/libs/some_lib/" ~ CCLEAR ~ "\n" ~
+					"\tand all the header files in its " ~ CFOCUS ~ "Include" ~ CCLEAR ~ "\n" ~
+					"\tsubdirectory will be added to the project."
+				)
 				.set_callback(&do_add)
 		)
 		.subcommand(
