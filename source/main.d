@@ -78,12 +78,26 @@ void main(string[] args)
 		.subcommand(
 			new Command("build", "Build project")
 				.arg(Arg.single("release", "r", "Release type", "none", ALLOWED_BUILD_MODES))
+				.set_longer_desc(
+					"This command generates a brand new CMakeLists.txt,\n" ~
+					"configures the CMake project and builds the program.\n" ~
+					"Any new .cpp files or changes to coalfile will take\n" ~
+					"effect during the build.\n" ~
+					"You can specify the release mode (debug, release etc.)\n" ~
+					"using the " ~ CFOCUS ~ "release" ~ CCLEAR ~ " argument. The flags for each build\n" ~
+					"mode are configured in the coalfile."
+				)
 				.set_callback(&do_build)
 		)
 		.subcommand(
 			new Command("run", "Build and run project")
 				.arg(Arg.flag("no-build", null, "Don't build project", false))
 				.arg(Arg.single("release", "r", "Release type", "none", ALLOWED_BUILD_MODES))
+				.set_longer_desc(
+					"This command builds and runs the project. The build\n" ~
+					"process is identical to " ~ CFOCUS ~ "coal build" ~ CCLEAR ~ " and it can be\n" ~
+					"skipped by specifying the " ~ CFOCUS ~ "no-build" ~ CCLEAR ~ " argument."
+				)
 				.set_callback(&do_run)
 		)
 		.subcommand(
