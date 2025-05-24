@@ -112,6 +112,24 @@ void main(string[] args)
 					.arg(Arg.single("name", "n", "Template name", null))
 					.arg(Arg.single("desc", "d", "Template description", null))
 					.arg(Arg.single("path", "p", "Full path to template's root folder", null))
+					.set_longer_desc(
+					"This command adds a new project template.\n" ~
+					"A template is a directory on your computer\n" ~
+					"which can be used as a starting point for\n" ~
+					"new projects. A template does not have to\n" ~
+					"have a coalfile.\n\n" ~
+					"When a template is cloned, all of its files\n" ~
+					"(except for maintenance files like .git/)\n" ~
+					"are copied to the specified destination.\n\n" ~
+					"Template definitions are stored in a JSON\n" ~
+					"file located in the coal executable path.\n\n" ~
+					"Templates are identified by their names,\n" ~
+					"so the template name must be unique.\n\n" ~
+					"Example:\n" ~
+					CTRACE ~ "\tcoal template new --name \"win32\" --path \"D:/user/programs/win32_base/\" --desc \"Base project for Win32\"\n" ~ CCLEAR ~
+					"\tThis delcares a template " ~ CFOCUS ~ "win32" ~ CCLEAR ~ "\n" ~
+					"\twhose files are located in\n\t" ~ CFOCUS ~ "D:/user/programs/win32_base/" ~ CCLEAR ~ ".\n" ~
+					"\tYou can clone this template\n\tusing " ~ CTRACE ~ "coal template clone" ~ CCLEAR ~ ".")
 					.set_callback(&do_new_template)
 				)
 				.subcommand(
@@ -121,6 +139,25 @@ void main(string[] args)
 					.arg(Arg.single("src", "s", "Source code directory (relative)", null))
 					.arg(Arg.single("build", "b", "Binaries directory (relative)", null))
 					.arg(Arg.single("generator", "g", "Which CMake generator to use", null))
+					.set_longer_desc(
+					"This command copies files of a template to\n" ~
+					"another location on your computer. Compared\n" ~
+					"to " ~ CTRACE ~ "coal init" ~ CCLEAR ~ ", this command doesn't generate\n" ~
+					"a stub project or a new coalfile unless the\n" ~
+					"template doesn't have a coalfile already.\n\n" ~
+					"If a coalfile doesn't exist, you must pass\n" ~
+					"certain project argument like the build dir\n" ~
+					"and generator type. Otherwise, the project\n" ~
+					"name is the only argument you must always\n" ~
+					"specify (the cloned project should not have\n" ~
+					"the same name like the template).\n\n" ~
+					"Example:\n" ~
+					CTRACE ~ "\tcoal template clone --template \"win32\" --name \"calculator\"\n" ~ CCLEAR ~
+					"\tThis clones a template " ~ CFOCUS ~ "win32" ~ CCLEAR ~ "\n" ~
+					"\tto the current shell path\n" ~
+					"\tand creates a project called\n\t" ~ CFOCUS ~ "calculator" ~ CCLEAR ~ "."
+					)
+					.set_callback(&do_new_template)
 					.set_callback(&do_clone_from_template)
 				)
 		)
