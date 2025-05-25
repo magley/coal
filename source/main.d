@@ -164,7 +164,12 @@ void main(string[] args)
 		.subcommand(new Command("clean", "Clean build files and CMake cache")
 				.arg(Arg.flag("program", "p", "Also remove program binaries and DLLs", false))
 				.set_callback(&do_clean)
+				.set_longer_desc(
+					"This command deletes all build files and any\n" ~
+					"cached CMake/Make/Ninja/etc. data along with\n" ~
+					"it. The program binary and .dll files from\n" ~
+					"the program's dependencies are not removed\n" ~
+					"unless you pass the " ~ CFOCUS ~ "program" ~ CCLEAR ~ " flag.")
 		);
-
 	handle(root, args, "coal");
 }
